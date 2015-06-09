@@ -6,6 +6,7 @@
 #include <string>
 #include <utility>
 #include <iostream>
+#include <memory>
 
 #include <TROOT.h>
 #include <TChain.h>
@@ -20,6 +21,9 @@
 #include "mut_framework/mut_dataformats/interface/Lepton.h"
 #include "mut_framework/mut_dataformats/interface/Jet.h"
 #include "mut_framework/mut_dataformats/interface/MET.h"
+
+// FtCM JetRegistry
+#include "mut_framework/BTagSF_FtCM/interface/JetRegistry.h"
 
 
 class JetCounter : public TSelector {
@@ -42,7 +46,11 @@ public :
    std::vector<double> ptBins_;
    std::vector<double> etaBins_;
 
-   TH2D * all_jets; // pt-eta histogram of all jets 
+   // pt-eta histogram of good jets 
+   TH2D * all_good_jets; // pt-eta histogram of good jets 
+
+   // class to manage and save results 
+   JetRegistry * jetRegistry_;
     
    // default constructor
    JetCounter(TTree * /*tree*/ =0) :
