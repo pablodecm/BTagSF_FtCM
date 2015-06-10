@@ -18,6 +18,7 @@ class JetRegistry {
    public:
 
     typedef std::vector<std::vector<TH2D>> TagTH2D;
+    typedef std::vector<std::vector<int>> TagNumber;
     typedef unsigned char ShortInt;  
     typedef std::vector<ShortInt> ShortIntVector;  
 
@@ -34,6 +35,9 @@ class JetRegistry {
     std::vector<double> etaBins_;
     // number of caterories
     unsigned int nCat_;
+
+    // this is to count the tagged jet multiplicity
+    std::vector<std::vector<std::vector<double>>> tagMultiplicity_;
  
     // histograms for the jets that pass selection (no btagging) 
     TH2D good_jets_; 
@@ -57,13 +61,18 @@ class JetRegistry {
                 const std::vector<double> & ptBins,
                 const std::vector<double> & etaBins);
 
+    // default constructor (required by ROOT)
+    JetRegistry() {}
+
     // destructor
     ~JetRegistry() {}
 
     // add a jet to all the histograms and returns the category of the jet
-    int registerJet( const mut::Jet & jet);  
+    int registerJet( const mut::Jet & jet, TagNumber & tagNumber);  
     // count event in the corresponding category (return true if created)
-    bool registerEvent( const ShortIntVector & cat, double weight = 1.);  
+    bool registerEvent( const ShortIntVector & cat,
+                        const TagNumber & tagNumber,
+                        double weight = 1.);  
     
     friend std::ostream& extractCatCounts( std::ostream & out, const JetRegistry & jetRegistry); 
      

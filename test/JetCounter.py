@@ -36,6 +36,11 @@ tcanvas = TCanvas()
 jetCounter.jetRegistry_.good_b_jets_.Draw("COLZ TEXT")
 tcanvas.Print("good_b_jets.pdf")
 
+# test is JetRegistry can be written to a file
+tfile = ROOT.TFile("test.root","RECREATE")
+tfile.WriteObject(jetCounter.jetRegistry_,"jetRegistry")
+tfile.close()
+
 
 
 

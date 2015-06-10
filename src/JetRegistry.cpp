@@ -24,7 +24,8 @@ JetRegistry::JetRegistry(const std::vector<std::string> & taggers,
     tag_c_jets_.emplace_back();
     tag_l_jets_.emplace_back();
     tag_x_jets_.emplace_back();
-    for (std::size_t i=0; i < workPoints_.size(); i++) {
+    tagMultiplicity_.emplace_back();
+    for (std::size_t i=0; i < workPoints_[t].size(); i++) {
       std::string tag_jets_name = "tag_jets_"+taggers_[t]+"_"+std::to_string(i);
       tag_jets_.back().emplace_back(tag_jets_name.c_str(),"",
                                     ptBins_.size()-1, ptBins_.data(),
@@ -46,11 +47,15 @@ JetRegistry::JetRegistry(const std::vector<std::string> & taggers,
       tag_x_jets_.back().emplace_back(tag_x_jets_name.c_str(),"",
                                       ptBins_.size()-1, ptBins_.data(),
                                       etaBins_.size()-1, etaBins_.data());
+      // init multiplicity counting (max 10 b jet multiplicity)
+      tagMultiplicity_.back().emplace_back(10, 0.0);
+      
     }
   }
 }
 
-int JetRegistry::registerJet( const mut::Jet & jet) {
+int JetRegistry::registerJet( const mut::Jet & jet,
+                              TagNumber & tagNumber) {
 
   // get TH2D global bins and axis bins (1..)
   int global_bin = good_jets_.Fill( jet.pt() , jet.eta()); 
@@ -78,10 +83,11 @@ int JetRegistry::registerJet( const mut::Jet & jet) {
   }
  
   for (std::size_t t = 0; t < taggers_.size(); t++) {
-    for (std::size_t i = 0; i < workPoints_.size(); i++) {
+    for (std::size_t i = 0; i < workPoints_[t].size(); i++) {
       // check if tagged
       bool isTagged = jet.getDiscriminator(taggers_[t]) > workPoints_[t][i];  
       if (isTagged) {
+        tagNumber[t][i]++;
         tag_jets_[t][i].Fill( jet.pt(), jet.eta());
         if ( jet_flavour == 5) {
           tag_b_jets_[t][i].Fill( jet.pt() , jet.eta()); 
@@ -100,7 +106,9 @@ int JetRegistry::registerJet( const mut::Jet & jet) {
   return cat_index;
 }
 
-bool JetRegistry::registerEvent( const ShortIntVector & cat, double weight)
+bool JetRegistry::registerEvent( const ShortIntVector & cat, 
+                                 const TagNumber & tagNumber,
+                                 double weight)
 {
   nEventPass_++;
 
@@ -112,6 +120,13 @@ bool JetRegistry::registerEvent( const ShortIntVector & cat, double weight)
   } else {
     cat_counts_[cat] = {weight,0.0};
   }
+
+  for (std::size_t t = 0; t < taggers_.size(); t++) {
+    for (std::size_t i = 0; i < workPoints_[t].size(); i++) {
+      tagMultiplicity_[t][i][tagNumber[t][i]] += weight;
+    }
+  }
+
 
   return key_existed;
 }
@@ -129,7 +144,9 @@ std::ostream & extractCatCounts( std::ostream & output, const JetRegistry & jetR
         output << "," << +catPair.first[i];  
       }
     }
-    output << " = " << catPair.second[0] << "+-" << catPair.second[1] << std::endl;
+    output << " = " << std::setw(15) << std::right;
+    output << catPair.second[0] << "\u00B1";
+    output << std::setw(15) << std::right << catPair.second[1] << std::endl;
   }
 
   return output;

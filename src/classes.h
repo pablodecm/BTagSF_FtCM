@@ -5,6 +5,7 @@
 namespace { struct dict_FtCM {
   JetCounter dummy0;
   JetRegistry dummy1;
+  map<vector<unsigned char>,vector<double>> dummy2;
 };
 }
 

@@ -1,4 +1,6 @@
 <lcgdict>
   <class name="JetCounter"/>
   <class name="JetRegistry"/>
+  <class name="map<vector<unsigned char>,vector<double>>"/>
+  <function name="extractCatCounts"/>       
 </lcgdict>  

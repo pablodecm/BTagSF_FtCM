@@ -58,17 +58,27 @@ Bool_t JetCounter::Process(Long64_t entry)
     return false; // no passes event selection
   }
 
+  // vector categories counts (init to zero)
   JetRegistry::ShortIntVector cat(jetRegistry_->nCat_,0);
+  // number of tagged jets (init at zero)
+  JetRegistry::TagNumber tagNumber;
+  for (std::size_t t = 0; t < taggers_.size(); t++) {
+      tagNumber.emplace_back();
+    for (std::size_t i = 0; i < workPoints_[t].size(); i++) {
+      tagNumber.back().emplace_back(0);
+    }
+  }
+
 
   // for each good jet index
   for (auto j : good_jets_index) {
     // reference to current jet
     const auto & good_jet = pfjets->at(j);
-    int cat_index = jetRegistry_->registerJet(good_jet);
+    int cat_index = jetRegistry_->registerJet(good_jet, tagNumber);
     cat[cat_index]++;
   }
 
-  jetRegistry_->registerEvent(cat);
+  jetRegistry_->registerEvent(cat, tagNumber);
 
   return pass_event_sel;
 
