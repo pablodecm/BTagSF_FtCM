@@ -14,11 +14,6 @@ def submultisets( m, k ):
             smsets.append(mset)
     return smsets        
 
-print multisets(1,2)
-print multisets(2,3)
-print multisets(3,3)
-print submultisets((1,1,1),3)
-print submultisets((3,3,3),3)
 
 
         
