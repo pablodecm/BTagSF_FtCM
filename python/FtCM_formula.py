@@ -1,5 +1,7 @@
 from sympy import Symbol, IndexedBase, Product
-from sympy import binomial
+from sympy import binomial, sympify
+from ast import literal_eval
+import json
 
 def multiset( n, k ):
     if k == 0: return [(0,)*n]
@@ -32,5 +34,21 @@ def prob_submultiset( m, k):
     smset = submultiset(m, k) # get possible permutations
     comp_list = [prob_component(comp, m) for comp in smset] 
     return sum(comp_list) # sum the prob of all components 
+
+def load_cat_counts(filename):
+    with open(filename) as f:
+        return { literal_eval(k) : v for k,v in json.load(f).items()} 
+
+def formula_categories(filename, k):    
+    cat_counts = load_cat_counts(filename)
+    f_cats = sympify(0)
+    for cat, count in cat_counts.items():
+        f_cats += count[0]*prob_submultiset(cat, k)
+    return f_cats.expand()
+
+    
+    
+
+
 
         

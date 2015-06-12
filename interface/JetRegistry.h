@@ -5,6 +5,7 @@
 #include <string>
 #include <map>
 #include <iostream>
+#include <fstream> 
 
 #include <TH2.h>
 
@@ -73,7 +74,9 @@ class JetRegistry {
     bool registerEvent( const ShortIntVector & cat,
                         const TagNumber & tagNumber,
                         double weight = 1.);  
+
+    void serializeCatCounts( std::string filename);
     
-    friend std::ostream& extractCatCounts( std::ostream & out, const JetRegistry & jetRegistry); 
-     
 };
+
+

@@ -93,7 +93,6 @@ void JetCounter::SlaveTerminate()
 // last function called (on client)
 void JetCounter::Terminate()
 {
-  extractCatCounts(std::cout, *jetRegistry_);
 
 }
 

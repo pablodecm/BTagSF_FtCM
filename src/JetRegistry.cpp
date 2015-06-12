@@ -131,26 +131,29 @@ bool JetRegistry::registerEvent( const ShortIntVector & cat,
   return key_existed;
 }
 
-std::ostream & extractCatCounts( std::ostream & output, const JetRegistry & jetRegistry) {
+void JetRegistry::serializeCatCounts( std::string filename ) {
+  std::ofstream output(filename, std::ofstream::out); 
 
-  for (const auto& catPair : jetRegistry.cat_counts_) {
-    for (std::size_t i=0; i < catPair.first.size(); i++)  {
+  output << "{" ; 
+  for (auto catPair= cat_counts_.begin(); catPair!=cat_counts_.end(); catPair++) {
+    for (std::size_t i=0; i < catPair->first.size(); i++)  {
       if ( i == 0 )
       { 
-        output << "[" << +catPair.first[i];  
-      } else if ( i == catPair.first.size() - 1) {  
-        output << "," << +catPair.first[i] << "]";  
+        output << "\"(" << +catPair->first[i];  
+      } else if ( i == catPair->first.size() - 1) {  
+        output << "," << +catPair->first[i] << ")\"";  
       } else {
-        output << "," << +catPair.first[i];  
+        output << "," << +catPair->first[i];  
       }
     }
-    output << " = " << std::setw(15) << std::right;
-    output << catPair.second[0] << "\u00B1";
-    output << std::setw(15) << std::right << catPair.second[1] << std::endl;
+    if (catPair != --cat_counts_.end()) {
+      output << ": [" << catPair->second[0] << ", " << catPair->second[1] << "],";
+    } else {
+      output << ": [" << catPair->second[0] << ", " << catPair->second[1] << "]}";
+    }
   }
 
-  return output;
+  output.close();  
 }
-
 
 

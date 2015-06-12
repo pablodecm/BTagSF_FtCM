@@ -28,6 +28,8 @@ tchain.Process(jetCounter)
 
 print "Pass events:  " + str(jetCounter.jetRegistry_.nEventPass_)
 
+jetCounter.jetRegistry_.serializeCatCounts("TTbar.cat_counts")
+
 tcanvas = TCanvas()
 jetCounter.all_good_jets.Draw("COLZ TEXT")
 tcanvas.Print("good_jets.pdf")
@@ -39,7 +41,6 @@ tcanvas.Print("good_b_jets.pdf")
 # test is JetRegistry can be written to a file
 tfile = ROOT.TFile("test.root","RECREATE")
 tfile.WriteObject(jetCounter.jetRegistry_,"jetRegistry")
-tfile.close()
 
 
 
