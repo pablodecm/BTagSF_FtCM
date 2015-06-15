@@ -9,11 +9,12 @@ rootfile = "../../../../../BetterTTrees/TTbar_Summer13.root"
 jetCounter = JetCounter()
 
 # taggers to analyze 
-jetCounter.addTagger("combinedInclusiveSecondaryVertexBJetTags", 0.0, 1.0, 10)
+jetCounter.addTagger("combinedInclusiveSecondaryVertexBJetTags", 0.0, 1.0, 20)
+jetCounter.addTagger("combinedMVABJetTags", 0.0, 1.0, 10)
 
 # pt bins
 ptBins = vector('double')()
-ptBins += [0.0, 50.0, 100.0, 2000.0]
+ptBins += [0.0, 10000.0]
 jetCounter.setPtBins(ptBins)
 # eta bins
 etaBins = vector('double')()
@@ -28,7 +29,7 @@ tchain.Process(jetCounter)
 
 print "Pass events:  " + str(jetCounter.jetRegistry_.nEventPass_)
 
-jetCounter.jetRegistry_.serializeCatCounts("TTbar.cat_counts")
+jetCounter.jetRegistry_.serialize("mc_output.json")
 
 tcanvas = TCanvas()
 jetCounter.all_good_jets.Draw("COLZ TEXT")

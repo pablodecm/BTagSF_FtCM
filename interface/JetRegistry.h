@@ -23,8 +23,8 @@ class JetRegistry {
     typedef unsigned char ShortInt;  
     typedef std::vector<ShortInt> ShortIntVector;  
 
-    
-    unsigned long int nEventPass_ = 0;   
+    // [unweighted_events, weighthed_events, sumw2]
+    std::vector<double> nEventPass_ = {0.0, 0.0, 0.0};   
 
      // vector of taggers to be used
     std::vector<std::string> taggers_;
@@ -34,7 +34,7 @@ class JetRegistry {
     std::vector<double> ptBins_;
     // vector with etaBins
     std::vector<double> etaBins_;
-    // number of caterories
+    // number of categories
     unsigned int nCat_;
 
     // this is to count the tagged jet multiplicity
@@ -53,7 +53,7 @@ class JetRegistry {
     TagTH2D tag_l_jets_;
     TagTH2D tag_x_jets_;
 
-    // event counts for each event category pair<[x,l,c,b1,...,bn],[counts, error]>
+    // event counts for each event category pair<[x,l,c,b1,...,bn],[counts, sumw2]>
     std::map<ShortIntVector, std::vector<double>> cat_counts_;   
 
     // constructor
@@ -75,7 +75,8 @@ class JetRegistry {
                         const TagNumber & tagNumber,
                         double weight = 1.);  
 
-    void serializeCatCounts( std::string filename);
+    void serialize(std::ostream & os);
+    void serialize(std::string filename);
     
 };
 
