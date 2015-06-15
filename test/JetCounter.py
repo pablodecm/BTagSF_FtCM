@@ -27,17 +27,8 @@ tchain.Add( rootfile )
 
 tchain.Process(jetCounter)
 
-print "Pass events:  " + str(jetCounter.jetRegistry_.nEventPass_)
-
-jetCounter.jetRegistry_.serialize("mc_output.json")
-
-tcanvas = TCanvas()
-jetCounter.all_good_jets.Draw("COLZ TEXT")
-tcanvas.Print("good_jets.pdf")
-
-tcanvas = TCanvas()
-jetCounter.jetRegistry_.good_b_jets_.Draw("COLZ TEXT")
-tcanvas.Print("good_b_jets.pdf")
+# test serialization of results to JSON
+jetCounter.serialize("mc_output.json")
 
 # test is JetRegistry can be written to a file
 tfile = ROOT.TFile("test.root","RECREATE")

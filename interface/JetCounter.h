@@ -81,7 +81,8 @@ public :
    void setPtBins( std::vector<double> ptBins ) { ptBins_ = ptBins; }
    void setEtaBins( std::vector<double> etaBins ) { etaBins_ = etaBins; }
 
-   //ClassDef(JetCounter,0); (might not be required for ROOT6)
+   void serialize(std::string filename) { jetRegistry_->serialize(filename); } 
+
 };
 
 #endif

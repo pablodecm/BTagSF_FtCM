@@ -34,8 +34,6 @@ class JetRegistry {
     std::vector<double> ptBins_;
     // vector with etaBins
     std::vector<double> etaBins_;
-    // number of categories
-    unsigned int nCat_;
 
     // this is to count the tagged jet multiplicity
     std::vector<std::vector<std::vector<double>>> tagMultiplicity_;
