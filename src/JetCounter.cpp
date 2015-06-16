@@ -107,3 +107,10 @@ void JetCounter::addTagger( std::string name, double min, double max, int num) {
 
 }
 
+void JetCounter::addTagger( std::string name, std::vector<double> workPoints) {
+
+  taggers_.emplace_back(name);
+  workPoints_.emplace_back(workPoints);
+
+}
+

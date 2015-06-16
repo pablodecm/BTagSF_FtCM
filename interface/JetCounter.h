@@ -77,11 +77,13 @@ public :
 
    void setTaggers( std::vector<std::string> taggers ) { taggers_ = taggers; }
    void addTagger( std::string name, double min, double max, int num);
+   void addTagger( std::string name, std::vector<double> workPoints);
 
    void setPtBins( std::vector<double> ptBins ) { ptBins_ = ptBins; }
    void setEtaBins( std::vector<double> etaBins ) { etaBins_ = etaBins; }
 
    void serialize(std::string filename) { jetRegistry_->serialize(filename); } 
+   void resetJetRegistry() { delete jetRegistry_;}
 
 };
 
