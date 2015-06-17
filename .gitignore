@@ -1,2 +1,5 @@
 *.pdf
 .nfs*
+*.pyc
+output
+python/__init__.py
