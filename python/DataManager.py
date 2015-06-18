@@ -49,6 +49,7 @@ class DataManager:
     def __init__( self, mc_samples, data_samples, lumi):
         self.mc_samples = mc_samples 
         self.data_samples = data_samples 
+        self.lumi = lumi
         self.n_cat = len(mc_samples[0].good_cat_jets)
 
     def data_tag_multiplicity(self):
@@ -106,6 +107,7 @@ class DataManager:
                       "taggers": self.mc_samples[0].taggers,
                       "workPoints": self.mc_samples[0].workPoints,
                       "data_tag_multiplicity": self.data_tag_multiplicity(),
+                      "lumi": [self.lumi, True],
                       "eff_names": self.eff_names(),
                       "mc_tagging_eff" : self.mc_tagging_eff(),
                       "formula_array": [ccode(f) for f in self.formula_array()]}
