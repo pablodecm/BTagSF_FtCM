@@ -1,5 +1,9 @@
-from sympy import Symbol, IndexedBase, Product
-from sympy import binomial, sympify
+try:
+    from symengine import Symbol, sympify
+    from symengine.lib.symengine_wrapper import binomial
+except ImportError:
+    print "symengine (C++ CAS) not found, using sympy"
+    from sympy import Symbol, sympify, binomial
 
 def multiset( n, k ):
     if k == 0: return [(0,)*n]
@@ -18,15 +22,13 @@ def submultiset( m, k ):
 
 def prob_component( comp, m_comp):
     n_t = len(comp) # number of types
-    t = Symbol('t') # type of jet
-    C = IndexedBase('C') # componenent number vector 
-    N = IndexedBase('N') # max componenent number vector
-    E = IndexedBase('E') # efficiency vector 
-    product =  Product(binomial(N[t],C[t])*E[t]**(C[t])*(1-E[t])**(N[t]-C[t]), (t,0,len(comp)-1))
-    C_dict = { C[i] : comp[i] for i in range(n_t) }
-    N_dict = { N[i] : m_comp[i] for i in range(n_t) }
-    subs_dict = dict(C_dict.items() + N_dict.items())
-    return product.doit().subs(subs_dict)
+    effs = [Symbol("eff_{}".format(i)) for i in range(n_t)]
+    product = sympify(1)
+    for t in range(n_t): 
+        c = comp[t]
+        m = m_comp[t]
+        product *= binomial(m,c)*effs[t]**c*(1-effs[t])**(m-c)
+    return product
 
 def prob_submultiset( m, k):
     smset = submultiset(m, k) # get possible permutations
