@@ -37,6 +37,10 @@ class JetRegistry {
 
     // this is to count the tagged jet multiplicity
     std::vector<std::vector<std::vector<double>>> tagMultiplicity_;
+    
+    // vector to count good jets and tagged jets of each category
+    std::vector<double> good_cat_jets_;
+    std::vector<std::vector<std::vector<double>>> tag_cat_jets_;
  
     // histograms for the jets that pass selection (no btagging) 
     TH2D good_jets_; 

@@ -9,6 +9,7 @@ JetRegistry::JetRegistry(const std::vector<std::string> & taggers,
                          workPoints_(workPoints),
                          ptBins_(ptBins),
                          etaBins_(etaBins), 
+                         good_cat_jets_(3+(ptBins_.size()-1)*(etaBins_.size()-1), 0.0),
                          good_jets_("good_jets","", ptBins.size()-1, ptBins.data(), etaBins.size()-1, etaBins.data()), 
                          good_b_jets_("good_b_jets","", ptBins.size()-1, ptBins.data(), etaBins.size()-1, etaBins.data()), 
                          good_c_jets_("good_c_jets","", ptBins.size()-1, ptBins.data(), etaBins.size()-1, etaBins.data()), 
@@ -24,6 +25,7 @@ JetRegistry::JetRegistry(const std::vector<std::string> & taggers,
     tag_l_jets_.emplace_back();
     tag_x_jets_.emplace_back();
     tagMultiplicity_.emplace_back();
+    tag_cat_jets_.emplace_back(); 
     for (std::size_t i=0; i < workPoints_[t].size(); i++) {
       std::string tag_jets_name = "tag_jets_"+taggers_[t]+"_"+std::to_string(i);
       tag_jets_.back().emplace_back(tag_jets_name.c_str(),"",
@@ -48,7 +50,8 @@ JetRegistry::JetRegistry(const std::vector<std::string> & taggers,
                                       etaBins_.size()-1, etaBins_.data());
       // init multiplicity counting (max 10 b jet multiplicity)
       tagMultiplicity_.back().emplace_back(10, 0.0);
-      
+      // init tag cat jet counts
+      tag_cat_jets_.back().emplace_back(3+(ptBins_.size()-1)*(etaBins_.size()-1), 0.0); 
     }
   }
 }
@@ -62,8 +65,7 @@ int JetRegistry::registerJet( const mut::Jet & jet,
   int bin_eta = ((global_bin-bin_pt)/(ptBins_.size()+1))%(etaBins_.size()+1);  
   // index
   int cat_index = (bin_pt-1)+(bin_eta-1)*(etaBins_.size()-1);
-
-  
+    
   int jet_flavour = jet.getPartonFlavour();
  
   if ( jet_flavour == 5) { // b jets
@@ -81,6 +83,10 @@ int JetRegistry::registerJet( const mut::Jet & jet,
     cat_index = 0; // O is x, 1 is l and 2 is c
   }
  
+  // add to good jets count
+  good_cat_jets_[cat_index]++;
+
+
   for (std::size_t t = 0; t < taggers_.size(); t++) {
     for (std::size_t i = 0; i < workPoints_[t].size(); i++) {
       // check if tagged
@@ -88,6 +94,7 @@ int JetRegistry::registerJet( const mut::Jet & jet,
       if (isTagged) {
         tagNumber[t][i]++;
         tag_jets_[t][i].Fill( jet.pt(), jet.eta());
+        tag_cat_jets_[t][i][cat_index]++; 
         if ( jet_flavour == 5) {
           tag_b_jets_[t][i].Fill( jet.pt() , jet.eta()); 
         } else  if ( jet_flavour == 4) {
@@ -173,6 +180,44 @@ void JetRegistry::serialize( std::ostream & os) {
   // number of events passed pre-tag cuts
   os << "\t\"nEventPass\": [" << nEventPass_[0] << ", "<< nEventPass_[1] << ", "
      << nEventPass_[2] << "],\n";
+
+  // serialize good jets per category coounts
+  os << "\t\"good_cat_jets\": [";
+  for (std::size_t i = 0; i < good_cat_jets_.size() - 1; i ++) 
+    os << good_cat_jets_.at(i) << ", ";
+  os << good_cat_jets_.back() << "],\n";
+
+  // serialize tagged jets per category counts
+  os << "\t\"tag_cat_jets\": [\n";
+  for (std::size_t i = 0; i < tag_cat_jets_.size() - 1; i++) {
+    os << "\t\t[\n";
+    for (std::size_t ii = 0; ii < tag_cat_jets_.at(i).size() - 1; ii++) {
+      os << "\t\t\t[";
+      for (std::size_t iii = 0; iii < tag_cat_jets_.at(i).at(ii).size() - 1; iii++) {
+        os << tag_cat_jets_.at(i).at(ii).at(iii) << ", ";
+      } 
+      os << tag_cat_jets_.at(i).at(ii).back()<< "],\n";
+    }
+    os << "\t\t\t[";
+    for (std::size_t iii = 0; iii < tag_cat_jets_.at(i).back().size() - 1; iii++) {
+        os << tag_cat_jets_.at(i).back().at(iii) << ", ";
+    }
+    os << tag_cat_jets_.at(i).back().back()<< "]\n\t\t],\n";
+  }
+  os << "\t\t[\n";
+  for (std::size_t ii = 0; ii < tag_cat_jets_.back().size() - 1; ii++) {
+    os << "\t\t\t[";
+    for (std::size_t iii = 0; iii < tag_cat_jets_.back().at(ii).size() - 1; iii++) {
+      os << tag_cat_jets_.back().at(ii).at(iii) << ", ";
+    } 
+    os << tag_cat_jets_.back().at(ii).back()<< "],\n";
+  }
+  os << "\t\t\t[";
+  for (std::size_t iii = 0; iii < tag_cat_jets_.back().back().size() - 1; iii++) {
+    os << tag_cat_jets_.back().back().at(iii) << ", ";
+  }
+  os << tag_cat_jets_.back().back().back()<< "]\n\t\t]\n\t],\n";
+
 
   // serialize tagMultiplicity
   os << "\t\"tagMultiplicity\": [\n";
