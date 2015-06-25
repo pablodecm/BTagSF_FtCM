@@ -32,6 +32,9 @@ public :
    // asociated with a TTree 
    TTreeReader fReader;
 
+   // is actual data
+   bool isData_;
+
    // asociated with a TBranch
    TTreeReaderValue<mut::EventInfo> eventInfo;
    TTreeReaderValue<std::vector<mut::Lepton>> muons;
@@ -43,11 +46,16 @@ public :
    // vector of working points for each tagger
    std::vector<std::vector<double>> workPoints_;
 
+   // pt and eta bins
    std::vector<double> ptBins_;
    std::vector<double> etaBins_;
 
-   // pt-eta histogram of good jets 
-   TH2D * all_good_jets; // pt-eta histogram of good jets 
+   // pt-eta histogram of good jets
+   TH2D * all_good_jets;
+
+   // event weights to take into account (set defaults)
+   std::vector<std::string> eWeights_ = 
+    { "weight_PU_nom" };
 
    // class to manage and save results 
    JetRegistry * jetRegistry_;
@@ -82,8 +90,14 @@ public :
    void setPtBins( std::vector<double> ptBins ) { ptBins_ = ptBins; }
    void setEtaBins( std::vector<double> etaBins ) { etaBins_ = etaBins; }
 
+   void setEventWeights( std::vector<std::string> eWeights ) { eWeights_ = eWeights; }
+   double getEventWeight();
+
    void serialize(std::string filename) { jetRegistry_->serialize(filename); } 
-   void resetJetRegistry() { delete jetRegistry_;}
+   void resetJetRegistry() { 
+     delete jetRegistry_;
+     delete all_good_jets; 
+   }
 
 };
 

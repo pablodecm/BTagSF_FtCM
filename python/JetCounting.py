@@ -26,13 +26,13 @@ class JetCountingManager():
         return None
 
 
-    def process(self, samples):
+    def process(self, samples, isData = False):
    
         out_fn = []
         for sample in samples:
             tchain = TChain("tree")
             tchain.Add(sample)
-            tchain.Process(self.jetCounter)
+            tchain.Process(self.jetCounter, "isData"*isData)
             out_fn.append(self.out_dir+split(sample)[1].replace(".root",".json"))
             self.jetCounter.serialize(out_fn[-1])
             self.jetCounter.resetJetRegistry()

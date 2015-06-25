@@ -6,8 +6,13 @@
 void JetCounter::Begin(TTree * /*tree*/)
 {
 
-   TString option = GetOption();
-
+   std::string option = GetOption();
+   std::size_t i_isData = option.find("isData"); 
+   if (i_isData != std::string::npos) {
+     isData_ = true;
+   } else {
+     isData_ = false;
+   }
 }
 
 // right after begin (executed on slave)
@@ -69,16 +74,19 @@ Bool_t JetCounter::Process(Long64_t entry)
     }
   }
 
+  // get event weight ( it will be 1 for data)
+  double weight = getEventWeight();
 
   // for each good jet index
   for (auto j : good_jets_index) {
     // reference to current jet
     const auto & good_jet = pfjets->at(j);
-    int cat_index = jetRegistry_->registerJet(good_jet, tagNumber);
+    int cat_index = jetRegistry_->registerJet(good_jet, tagNumber, weight);
     cat[cat_index]++;
   }
 
-  jetRegistry_->registerEvent(cat, tagNumber);
+
+  jetRegistry_->registerEvent(cat, tagNumber, weight);
 
   return pass_event_sel;
 
@@ -112,5 +120,18 @@ void JetCounter::addTagger( std::string name, std::vector<double> workPoints) {
   taggers_.emplace_back(name);
   workPoints_.emplace_back(workPoints);
 
+}
+
+double JetCounter::getEventWeight() {
+  
+  double weight = 1.0;
+
+  if (!isData_) {
+    for ( auto eWeight : eWeights_ ) {
+      weight*=eventInfo->getWeight(eWeight);
+    }
+  }   
+
+  return weight;
 }
 

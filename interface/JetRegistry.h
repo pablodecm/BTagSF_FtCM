@@ -6,6 +6,7 @@
 #include <map>
 #include <iostream>
 #include <fstream> 
+#include <limits>
 
 #include <TH2.h>
 
@@ -71,7 +72,9 @@ class JetRegistry {
     ~JetRegistry() {}
 
     // add a jet to all the histograms and returns the category of the jet
-    int registerJet( const mut::Jet & jet, TagNumber & tagNumber);  
+    int registerJet( const mut::Jet & jet,
+                     TagNumber & tagNumber,
+                     double eWeight = 1.);  
     // count event in the corresponding category (return true if created)
     bool registerEvent( const ShortIntVector & cat,
                         const TagNumber & tagNumber,
