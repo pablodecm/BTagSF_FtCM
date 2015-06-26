@@ -63,8 +63,8 @@ Bool_t JetCounter::Process(Long64_t entry)
     return false; // no passes event selection
   }
 
-  // vector categories counts (init to zero)
-  JetRegistry::ShortIntVector cat((ptBins_.size()-1)*(etaBins_.size()-1)+3,0);
+  // categories counts (init to zero)
+  JetRegistry::JetCategory cat((ptBins_.size()-1)*(etaBins_.size()-1)+3,'0');
   // number of tagged jets (init at zero)
   JetRegistry::TagNumber tagNumber;
   for (std::size_t t = 0; t < taggers_.size(); t++) {

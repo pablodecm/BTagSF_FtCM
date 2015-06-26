@@ -21,8 +21,7 @@ class JetRegistry {
 
     typedef std::vector<std::vector<TH2D>> TagTH2D;
     typedef std::vector<std::vector<int>> TagNumber;
-    typedef unsigned char ShortInt;  
-    typedef std::vector<ShortInt> ShortIntVector;  
+    typedef std::string JetCategory;
 
     // [unweighted_events, weighthed_events, sumw2]
     std::vector<double> nEventPass_ = {0.0, 0.0, 0.0};   
@@ -56,8 +55,8 @@ class JetRegistry {
     TagTH2D tag_l_jets_;
     TagTH2D tag_x_jets_;
 
-    // event counts for each event category pair<[x,l,c,b1,...,bn],[counts, sumw2]>
-    std::map<ShortIntVector, std::vector<double>> cat_counts_;   
+    // event counts for each event category pair <[x,l,c,b1,...,bn],[counts, sumw2]>
+    std::map<JetCategory, std::vector<double>> cat_counts_;   
 
     // constructor
     JetRegistry(const std::vector<std::string> & taggers,
@@ -76,7 +75,7 @@ class JetRegistry {
                      TagNumber & tagNumber,
                      double eWeight = 1.);  
     // count event in the corresponding category (return true if created)
-    bool registerEvent( const ShortIntVector & cat,
+    bool registerEvent( const JetCategory & cat,
                         const TagNumber & tagNumber,
                         double weight = 1.);  
 

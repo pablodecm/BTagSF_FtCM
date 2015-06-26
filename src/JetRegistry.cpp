@@ -113,7 +113,7 @@ int JetRegistry::registerJet( const mut::Jet & jet,
   return cat_index;
 }
 
-bool JetRegistry::registerEvent( const ShortIntVector & cat,
+bool JetRegistry::registerEvent( const JetCategory & cat,
                                  const TagNumber & tagNumber,
                                  double weight)
 {
@@ -261,20 +261,14 @@ void JetRegistry::serialize( std::ostream & os) {
   os << "\t\"cat_counts\": {\n";
   if (cat_counts_.size() > 0 ) { // check if any element in map (avoid segfault)
     for (auto catPair= cat_counts_.begin(); catPair!= --cat_counts_.end(); catPair++) {
-      // write category as key string (e.g. "(0,0,1,3)")
-      os << "\t\t\"(" << +catPair->first.front();
-      for (std::size_t i=1; i < catPair->first.size() - 1; i++)
-          os << "," << +catPair->first[i];
-      os << "," << +catPair->first.back() << ")\"";
+      // write category as key string (e.g. "0013")
+      os << "\t\t\"" << catPair->first << "\"";
       // write [weighted_counts, error] as value
       os << ": [" << catPair->second[0] << ", " << catPair->second[1] << "],\n" ;
     }
     // last element is special case
     auto last =  --cat_counts_.end();
-    os << "\t\t\"(" << +last->first.front();
-    for (std::size_t i=1; i < last->first.size() - 1; i++)
-      os << "," << +last->first[i];
-    os << "," << +last->first.back() << ")\"";
+    os << "\t\t\"" << last->first << "\"";
     os << ": [" << last->second[0] << ", " << last->second[1] << "]\n";
   }
   os << "\t}"; // end of cat counts serialization
