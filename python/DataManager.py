@@ -1,4 +1,3 @@
-from ast import literal_eval
 import json
 from sympy import ccode
 try:
@@ -25,7 +24,7 @@ class Sample:
         self.xSec = xSec
         self.nEventPass = j["nEventPass"]
         self.tagMultiplicity = j["tagMultiplicity"]
-        self.cat_counts = {literal_eval(k) : v for k,v in j["cat_counts"].items()} 
+        self.cat_counts = {tuple(int(n) for n in k) : v for k,v in j["cat_counts"].items()} 
 
     def pretag_eff(self):     
         return float(self.nEventPass[0])/float(self.nEventGen)
