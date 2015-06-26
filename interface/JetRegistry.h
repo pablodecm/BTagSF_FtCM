@@ -12,6 +12,7 @@
 
 // mut_dataformats includes
 #include "mut_framework/mut_dataformats/interface/Jet.h"
+#include "mut_framework/mut_utils/interface/json.h"
 
 // class to manage the results of the FtCM JetCounter selector
 // this will be written to a root file

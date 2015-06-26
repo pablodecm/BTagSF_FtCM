@@ -154,125 +154,21 @@ void JetRegistry::serialize( std::ostream & os) {
   // set precision to maximum double precison
   os << std::setprecision(std::numeric_limits<double>::digits10 + 1);
 
-  os << "{\n"; // first json brace
+  // use modern JSON C++ library
+  json j;
 
-  // serialize tagger and workpoints
-  os << "\t\"taggers\": [\n";
-  for (std::size_t i = 0; i < taggers_.size() - 1; i ++)
-    os << "\t\t\"" << taggers_.at(i) << "\",\n";
-  os << "\t\t\"" << taggers_.back() << "\"\n\t],\n";
-  os << "\t\"workPoints\": [\n";
-  for (std::size_t i = 0; i < workPoints_.size() - 1; i++) {
-    os << "\t\t[";
-    for (std::size_t ii = 0; ii < workPoints_.at(i).size() - 1; ii++)
-      os << workPoints_.at(i).at(ii) << ", ";
-    os << workPoints_.at(i).back() << "],\n";
-  }
-  os << "\t\t[";
-  for (std::size_t ii = 0; ii < workPoints_.back().size() - 1; ii++)
-      os << workPoints_.back().at(ii) << ", ";
-  os << workPoints_.back().back() << "]\n";
-  os << "\t],\n"; // end of workpoints serialization
+  j["taggers"] = taggers_;
+  j["workPoints"] = workPoints_;
+  j["ptBins"] = ptBins_;
+  j["etaBins"] = etaBins_;
+  j["nEventPass"] = nEventPass_;
+  j["good_cat_jets"] = good_cat_jets_;
+  j["tag_cat_jets"] = tag_cat_jets_;
+  j["tagMultiplicity"] = tagMultiplicity_;
+  j["cat_counts"] = cat_counts_;
 
-  // serialize pt and eta bin categories
-  os << "\t\"ptBins\": [";
-  for (std::size_t i = 0; i < ptBins_.size() - 1; i ++)
-    os << ptBins_.at(i) << ", ";
-  os << ptBins_.back() << "],\n";
-  os << "\t\"etaBins\": [";
-  for (std::size_t i = 0; i < etaBins_.size() - 1; i ++)
-    os << etaBins_.at(i) << ", ";
-  os << etaBins_.back() << "],\n";
+  os << std::setw(4) << j << std::endl;
 
-  // number of events passed pre-tag cuts
-  os << "\t\"nEventPass\": [" << nEventPass_[0] << ", "<< nEventPass_[1] << ", "
-     << nEventPass_[2] << "],\n";
-
-  // serialize good jets per category coounts
-  os << "\t\"good_cat_jets\": [";
-  for (std::size_t i = 0; i < good_cat_jets_.size() - 1; i ++)
-    os << good_cat_jets_.at(i) << ", ";
-  os << good_cat_jets_.back() << "],\n";
-
-  // serialize tagged jets per category counts
-  os << "\t\"tag_cat_jets\": [\n";
-  for (std::size_t i = 0; i < tag_cat_jets_.size() - 1; i++) {
-    os << "\t\t[\n";
-    for (std::size_t ii = 0; ii < tag_cat_jets_.at(i).size() - 1; ii++) {
-      os << "\t\t\t[";
-      for (std::size_t iii = 0; iii < tag_cat_jets_.at(i).at(ii).size() - 1; iii++) {
-        os << tag_cat_jets_.at(i).at(ii).at(iii) << ", ";
-      }
-      os << tag_cat_jets_.at(i).at(ii).back()<< "],\n";
-    }
-    os << "\t\t\t[";
-    for (std::size_t iii = 0; iii < tag_cat_jets_.at(i).back().size() - 1; iii++) {
-        os << tag_cat_jets_.at(i).back().at(iii) << ", ";
-    }
-    os << tag_cat_jets_.at(i).back().back()<< "]\n\t\t],\n";
   }
-  os << "\t\t[\n";
-  for (std::size_t ii = 0; ii < tag_cat_jets_.back().size() - 1; ii++) {
-    os << "\t\t\t[";
-    for (std::size_t iii = 0; iii < tag_cat_jets_.back().at(ii).size() - 1; iii++) {
-      os << tag_cat_jets_.back().at(ii).at(iii) << ", ";
-    }
-    os << tag_cat_jets_.back().at(ii).back()<< "],\n";
-  }
-  os << "\t\t\t[";
-  for (std::size_t iii = 0; iii < tag_cat_jets_.back().back().size() - 1; iii++) {
-    os << tag_cat_jets_.back().back().at(iii) << ", ";
-  }
-  os << tag_cat_jets_.back().back().back()<< "]\n\t\t]\n\t],\n";
-
-
-  // serialize tagMultiplicity
-  os << "\t\"tagMultiplicity\": [\n";
-  for (std::size_t i = 0; i < tagMultiplicity_.size() - 1; i++) {
-    os << "\t\t[\n";
-    for (std::size_t ii = 0; ii < tagMultiplicity_.at(i).size() - 1; ii++) {
-      os << "\t\t\t[";
-      for (std::size_t iii = 0; iii < tagMultiplicity_.at(i).at(ii).size() - 1; iii++) {
-        os << tagMultiplicity_.at(i).at(ii).at(iii) << ", ";
-      }
-      os << tagMultiplicity_.at(i).at(ii).back()<< "],\n";
-    }
-    os << "\t\t\t[";
-    for (std::size_t iii = 0; iii < tagMultiplicity_.at(i).back().size() - 1; iii++) {
-        os << tagMultiplicity_.at(i).back().at(iii) << ", ";
-    }
-    os << tagMultiplicity_.at(i).back().back()<< "]\n\t\t],\n";
-  }
-  os << "\t\t[\n";
-  for (std::size_t ii = 0; ii < tagMultiplicity_.back().size() - 1; ii++) {
-    os << "\t\t\t[";
-    for (std::size_t iii = 0; iii < tagMultiplicity_.back().at(ii).size() - 1; iii++) {
-      os << tagMultiplicity_.back().at(ii).at(iii) << ", ";
-    }
-    os << tagMultiplicity_.back().at(ii).back()<< "],\n";
-  }
-  os << "\t\t\t[";
-  for (std::size_t iii = 0; iii < tagMultiplicity_.back().back().size() - 1; iii++) {
-    os << tagMultiplicity_.back().back().at(iii) << ", ";
-  }
-  os << tagMultiplicity_.back().back().back()<< "]\n\t\t]\n\t],\n";
-
-  // serialize category counts
-  os << "\t\"cat_counts\": {\n";
-  if (cat_counts_.size() > 0 ) { // check if any element in map (avoid segfault)
-    for (auto catPair= cat_counts_.begin(); catPair!= --cat_counts_.end(); catPair++) {
-      // write category as key string (e.g. "0013")
-      os << "\t\t\"" << catPair->first << "\"";
-      // write [weighted_counts, error] as value
-      os << ": [" << catPair->second[0] << ", " << catPair->second[1] << "],\n" ;
-    }
-    // last element is special case
-    auto last =  --cat_counts_.end();
-    os << "\t\t\"" << last->first << "\"";
-    os << ": [" << last->second[0] << ", " << last->second[1] << "]\n";
-  }
-  os << "\t}"; // end of cat counts serialization
-  os << "\n}\n"; // last json brace
-}
 
 
