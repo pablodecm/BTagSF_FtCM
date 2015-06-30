@@ -3,3 +3,5 @@
 <use name="rootcore"/>
 <use name="rootgraphics"/>
 <use name="mut_framework/mut_dataformats"/>
+<use name="roofit"/>
+

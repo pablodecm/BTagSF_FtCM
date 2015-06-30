@@ -3,5 +3,5 @@
   <class name="JetRegistry"/>
   <class name="Component"/>
   <class name="Model"/>
-  <enum name="Norm" />
+  <enum name="Normalization" />
 </lcgdict>  
