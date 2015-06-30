@@ -15,7 +15,7 @@
 #include "mut_framework/mut_utils/interface/json.h"
 
 // class to manage the results of the FtCM JetCounter selector
-// this will be written to a root file
+// this will be written to a root or JSON file
 class JetRegistry {
  
    public:

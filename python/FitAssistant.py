@@ -1,12 +1,12 @@
 import json
 from ROOT import RooRealVar, RooArgList, RooClassFactory, RooUniform, RooArgSet
 from ROOT import RooCategory, RooExtendPdf, RooAddPdf, RooSimultaneous
-from ROOT import RooDataHist
+from ROOT import RooDataHist, RooProdPdf, RooLognormal
 
 
 class FitAssistant:
 
-    def __init__(self, filename):
+    def __init__(self, filename, log_normal_b = True):
         with open(filename) as f: 
             j = json.load(f)
         self.taggers = j["taggers"]    
@@ -45,8 +45,22 @@ class FitAssistant:
                                       self.uni , f) for f in formulas]  
         self.f_list = RooArgList("ext_f_list")
         for f in self.formulas: self.f_list.add(f)
-        self.simulpdf = RooSimultaneous("simulpdf","simulpdf",
-                                         self.f_list, self.mul_tag) 
+        self.sim = RooSimultaneous("sim","sim",
+                                   self.f_list, self.mul_tag) 
+
+        if log_normal_b:
+            self.ln_b_m0 = RooRealVar("m0","m0",1.0)
+            self.ln_b_k = RooRealVar("k","k",1.15)
+            self.ln_b =  RooLognormal("log_normal_b","log_normal_b",
+                                       self.kappa[0],
+                                       self.ln_b_m0,
+                                       self.ln_b_k)
+            self.simulpdf = RooProdPdf("simulpdf","simulpdf",
+                                        self.sim,
+                                        self.ln_b)
+        else:
+            self.simulpdf = RooSimultaneous(sim, "simulpdf")
+
 
 
     def fix_parameters(self, tagger, workPoint):
