@@ -2,12 +2,18 @@
 #include "../interface/Component.h"
 
 Component::Component(std::string filename, double nEventGen,
-                     double xSec, Normalization n = FIXED) :
-                     c_name_(filename.substr(0,filename.find_last_of("."))),
+                     double xSec, Norm n) :
                      nEventGen_(nEventGen),
                      xSec_(xSec),
                      n_(n)
 {
+  std::size_t bar_i = filename.find_last_of('/');
+  std::size_t ext_i = filename.find_last_of('.');
+  if ( bar_i == std::string::npos) {
+    c_name_ = filename.substr(0,ext_i);
+  } else {
+    c_name_ = filename.substr(bar_i+1,ext_i);
+  }
 
   // load json file
   json j;
@@ -28,9 +34,14 @@ Component::Component(std::string filename, double nEventGen,
     cat_counts_[it.key()] = it.value().get<std::vector<double>>();
   }
 
-  // default mapping
-  for (std::size_t i = 0; i < good_cat_jets_.size(); i++) {
-    cat_mapping_.emplace_back(1,i);
+  // default mapping 
+  for (std::size_t i = 0; i < good_cat_jets_.size() - 1; i++) {
+    if (i==0) {
+      std::vector<int> xl = {0,1};
+      cat_mapping_.emplace_back(xl);
+    } else {
+      cat_mapping_.emplace_back(1,i+1);
+    }
   }
 
 } 

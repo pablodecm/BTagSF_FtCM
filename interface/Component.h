@@ -8,10 +8,8 @@
 
 #include "mut_framework/mut_utils/interface/json.h"
 
-enum Normalization {
+enum Norm {
   SIGNAL,
-  FLOATING,
-  FIXED,
   BKG,
   DATA
 };
@@ -27,7 +25,7 @@ class Component {
     std::vector<double> nEventPass_;   
     double nEventGen_;
     double xSec_;
-    Normalization n_;
+    Norm n_;
     
 
     // vector of taggers to be used
@@ -58,7 +56,7 @@ class Component {
 
 
     Component() {}
-    Component(std::string filename, double nEventGen, double xSec, Normalization n );
+    Component(std::string filename, double nEventGen, double xSec, Norm n );
     ~Component() {}
 
     void set_category_mapping( std::vector<std::vector<int>> cat_mapping) 
@@ -66,6 +64,7 @@ class Component {
     void set_tag_wp( std::string tag, double wp); 
 
     std::size_t get_n_cat() const { return cat_mapping_.size(); }
+    std::string get_name() const { return c_name_; }
     std::vector<double> get_pretag_eff() const;
     std::vector<double> get_good_cat_jets() const;
     std::vector<double> get_tag_cat_jets() const;

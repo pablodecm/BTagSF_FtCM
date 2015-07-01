@@ -2,8 +2,32 @@
 #include "../interface/Model.h"
 
 void Model::add_mc_component(std::string filename, double nEventGen,
-                             double xSec, Normalization n) {
+                             double xSec, Norm n) {
   mc_comps_.emplace_back(filename, nEventGen, xSec, n);
+  if (mc_comps_.size() == 1) { //init tag_eff_list
+    for (std::size_t i=0; i< mc_comps_.back().get_n_cat(); i++) {
+      std::string n_tag_eff = "tag_eff_"+std::to_string(i);
+      tag_effs_.addOwned(*new RooRealVar(n_tag_eff.c_str(),
+                                         n_tag_eff.c_str(), 0.0, 1.0));
+      if (i==0 || i ==1) { // light and c jets eff from mc
+        dynamic_cast<RooRealVar &>(tag_effs_[i]).setConstant();
+      }
+    }
+  }
+  const Component & c = mc_comps_.back();
+  std::string n_pretag_eff = "pre_tag_eff_"+c.get_name();
+  pretag_effs_.addOwned(*new RooRealVar(n_pretag_eff.c_str(),
+                                        n_pretag_eff.c_str(),
+                                        c.get_pretag_eff()[0]));
+  std::string n_xsec = "xsec_"+c.get_name();
+  if ( n == BKG ) { 
+    xsecs_.addOwned(*new RooRealVar(n_xsec.c_str(), n_xsec.c_str(), xSec));
+  } else {
+    xsecs_.addOwned(*new RooRealVar(n_xsec.c_str(), n_xsec.c_str(),
+                                    xSec, xSec*0.5, xSec*1.5));   
+  }
+  mc_norms_.emplace_back(n);
+                                     
 }
 
 void Model::add_data_component(std::string filename) {
@@ -11,16 +35,28 @@ void Model::add_data_component(std::string filename) {
 }
 
 void Model::set_category_mapping( std::vector<std::vector<int>> cat_mapping) {
+  tag_effs_.removeAll();
   for (auto & mc_comp : mc_comps_) mc_comp.set_category_mapping(cat_mapping);
   for (auto & data_comp : data_comps_) data_comp.set_category_mapping(cat_mapping);
+  for (std::size_t i=0; i< cat_mapping.size(); i++) {
+    std::string n_tag_eff = "tag_eff_"+std::to_string(i);
+    tag_effs_.addOwned(*new RooRealVar(n_tag_eff.c_str(),
+                                       n_tag_eff.c_str(), 0.0, 1.0));
+  }
 }
 
 void Model::set_tag_wp(std::string tag, double wp) {
   for (auto & mc_comp : mc_comps_) mc_comp.set_tag_wp(tag, wp);
   for (auto & data_comp : data_comps_) data_comp.set_tag_wp(tag, wp);
+
+  std::vector<double> mc_effs = get_mc_tag_effs();
+  for ( std::size_t i_c = 0; i_c < mc_effs.size(); i_c++) {
+    dynamic_cast<RooRealVar &>(tag_effs_[i_c]).setVal(mc_effs[i_c]);
+  } 
+
 }
 
-std::vector<double> Model::get_mc_tag_eff() const {
+std::vector<double> Model::get_mc_tag_effs() const {
 
   // init vectors to zero
   std::size_t n_cat =  mc_comps_.at(0).get_n_cat();
@@ -58,6 +94,33 @@ std::vector<double> Model::get_data_tag_multiplicity() const {
   }
 
   return tag_multiplicity;
+}
+
+ModelPdf Model::get_n_tag_pdf(unsigned n_tag) {
+
+  // create pdf
+  std::string pdf_name = std::to_string(n_tag) + "tag_pdf";
+  ModelPdf m_pdf(pdf_name.c_str(), pdf_name.c_str(),
+                 lumi_, kappa_,
+                 pretag_effs_, xsecs_, tag_effs_);
+  m_pdf.set_n_tag(n_tag);
+  m_pdf.set_norms(mc_norms_);
+
+  std::vector<std::vector<std::string>> cat;
+  std::vector<std::vector<double>> frac;
+
+  for (const auto & mc_comp : mc_comps_) {
+    cat.emplace_back();
+    frac.emplace_back();
+    for (const auto & pair : mc_comp.get_cat_fractions()) {
+      cat.back().emplace_back(pair.first);
+      frac.back().emplace_back(pair.second[0]);
+    }
+  }
+
+  m_pdf.set_cat_frac(cat, frac);
+
+  return m_pdf;
 }
 
 

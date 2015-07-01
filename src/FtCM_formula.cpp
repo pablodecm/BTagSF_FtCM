@@ -1,7 +1,5 @@
 
-#include <vector>
-#include <string>
-
+#include "../interface/FtCM_formula.h"
 
 namespace FtCM {
 
@@ -24,14 +22,14 @@ namespace FtCM {
   std::vector<std::string> submultiset(std::string m, int k) {
     std::vector<std::string> mset = multiset(m.size(), k);
     std::vector<std::string> smset; 
-    for (auto comp : mset) {
+    for (auto comb : mset) {
       bool in_subset = true;
       for (std::size_t i_c=0; i_c < m.size(); i_c++) {
-        if ( comp[i_c] < '0' || comp[i_c] > m[i_c] ) {
+        if ( comb[i_c] < '0' || comb[i_c] > m[i_c] ) {
           in_subset = false;
         } 
       } 
-      if (in_subset) smset.push_back(comp);
+      if (in_subset) smset.push_back(comb);
     }  
     return smset;
   }
