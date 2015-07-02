@@ -27,7 +27,7 @@ class Sample:
         self.cat_counts = {tuple(int(n) for n in k) : v for k,v in j["cat_counts"].items()} 
 
     def pretag_eff(self):     
-        return float(self.nEventPass[0])/float(self.nEventGen)
+        return float(self.nEventPass[1])/float(self.nEventGen)
         
     def tag_multiplicity(self, tagger, workPoint):
         i_tag = self.taggers.index(tagger)
@@ -35,7 +35,7 @@ class Sample:
         return self.tagMultiplicity[i_tag][i_wp]
 
     def cat_fractions(self):
-        return {k : float(v[0])/float(self.nEventPass[0]) for k,v in self.cat_counts.items()}
+        return {k : float(v[0])/float(self.nEventPass[1]) for k,v in self.cat_counts.items()}
 
     def formula(self, n_tags):
         factor = Symbol("lumi")*Symbol("xsec_"+self.s_name)*self.pretag_eff()

@@ -6,7 +6,7 @@ from ROOT import RooDataHist, RooProdPdf, RooLognormal
 
 class FitAssistant:
 
-    def __init__(self, filename, log_normal_b = True):
+    def __init__(self, filename, log_normal_b = False):
         with open(filename) as f: 
             j = json.load(f)
         self.taggers = j["taggers"]    
@@ -59,7 +59,7 @@ class FitAssistant:
                                         self.sim,
                                         self.ln_b)
         else:
-            self.simulpdf = RooSimultaneous(sim, "simulpdf")
+            self.simulpdf = RooSimultaneous(self.sim, "simulpdf")
 
 
 

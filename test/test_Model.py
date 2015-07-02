@@ -14,7 +14,7 @@ mc_samples = [["../output/TTbar_Summer13.json", 6923750, 240.0, 0 ],
 data_samples = [["../output/Data_2012ABCD_Winter13_ReReco.json"]]
 
 lumi = 19789.0
-max_n_tags = 4 
+max_n_tags = 7 
 
 m = Model(lumi)
 for mc_s in mc_samples:
