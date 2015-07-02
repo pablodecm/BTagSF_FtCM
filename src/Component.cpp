@@ -110,10 +110,10 @@ std::map<std::string, std::vector<double>> Component::get_cat_fractions() const 
       key.push_back('0');
       for (const auto & i_cat : mapping ) {
         key.back()+=(cat.first.at(i_cat)-'0');
-        value.at(0) += cat.second.at(0);
-        value.at(1) += cat.second.at(1);
-      } 
+      }
     }
+    value.at(0) += cat.second.at(0);
+    value.at(1) += cat.second.at(1);
     // write to map (divide between total number)
     if (cat_fractions.count(key) > 0) {
       cat_fractions.at(key).at(0) += value.at(0);
