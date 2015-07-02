@@ -1,6 +1,6 @@
 import json
 from ROOT import RooRealVar, RooArgList, RooClassFactory, RooUniform, RooArgSet
-from ROOT import RooCategory, RooExtendPdf, RooAddPdf, RooSimultaneous
+from ROOT import RooCategory, RooExtendPdf, RooSimultaneous
 from ROOT import RooDataHist, RooProdPdf, RooLognormal
 
 

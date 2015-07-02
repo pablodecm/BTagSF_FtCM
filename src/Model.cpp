@@ -56,6 +56,20 @@ void Model::set_tag_wp(std::string tag, double wp) {
 
 }
 
+void Model::set_pdfs(int max_n_tag) {
+
+  for (std::size_t n_t=0; n_t<std::size_t(max_n_tag); n_t++) {
+    pdf_norms_.addOwned(*get_n_tag_pdf_ptr(n_t));
+    std::string n_ext_pdf = "ext" + std::string(pdf_norms_[n_t].GetName());
+    RooExtendPdf * ext_pdf = new RooExtendPdf(n_ext_pdf.c_str(), n_ext_pdf.c_str(),
+                                 uni_, dynamic_cast<RooAbsPdf &>(pdf_norms_[n_t]));
+    ext_pdfs_.addOwned(*ext_pdf);
+    std::string n_tag_cat  = std::to_string(n_t) + "_tag_jets";
+    mul_tag_.defineType(n_tag_cat.c_str());
+    sim_pdf_.addPdf(dynamic_cast<RooAbsPdf &>(ext_pdfs_[n_t]), n_tag_cat.c_str());
+  }
+}
+
 std::vector<double> Model::get_mc_tag_effs() const {
 
   // init vectors to zero
@@ -122,6 +136,44 @@ ModelPdf Model::get_n_tag_pdf(unsigned n_tag) {
 
   return m_pdf;
 }
+
+ModelPdf * Model::get_n_tag_pdf_ptr(unsigned n_tag) {
+  
+  // create pdf pointer
+  std::string pdf_name = std::to_string(n_tag) + "tag_pdf";
+  ModelPdf * m_pdf = new ModelPdf(pdf_name.c_str(), pdf_name.c_str(),
+                                  lumi_, kappa_,
+                                  pretag_effs_, xsecs_, tag_effs_);
+  m_pdf->set_n_tag(n_tag);
+  m_pdf->set_norms(mc_norms_);
+
+  std::vector<std::vector<std::string>> cat;
+  std::vector<std::vector<double>> frac;
+
+  for (const auto & mc_comp : mc_comps_) {
+    cat.emplace_back();
+    frac.emplace_back();
+    for (const auto & pair : mc_comp.get_cat_fractions()) {
+      cat.back().emplace_back(pair.first);
+      frac.back().emplace_back(pair.second[0]);
+    }
+  }
+
+  m_pdf->set_cat_frac(cat, frac);
+
+  return m_pdf;
+}
+
+RooDataHist Model::get_data_hist(int max_n_tag) {
+  std::vector<double> data_tag_mul = get_data_tag_multiplicity();
+  RooDataHist data_hist("data","data", RooArgSet(mul_tag_));
+  for (std::size_t n_t=0; n_t<std::size_t(max_n_tag); n_t++) {
+    mul_tag_.setIndex(n_t);
+    data_hist.add(RooArgSet(mul_tag_), data_tag_mul[n_t]);
+  }
+  return data_hist;
+}
+
 
 
 
