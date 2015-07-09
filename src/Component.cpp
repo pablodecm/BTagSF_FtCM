@@ -12,7 +12,7 @@ Component::Component(std::string filename, double nEventGen,
   if ( bar_i == std::string::npos) {
     c_name_ = filename.substr(0,ext_i);
   } else {
-    c_name_ = filename.substr(bar_i+1,ext_i);
+    c_name_ = filename.substr(bar_i+1,ext_i-bar_i-1);
   }
 
   // load json file

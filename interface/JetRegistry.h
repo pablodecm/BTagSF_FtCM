@@ -21,6 +21,7 @@ class JetRegistry {
    public:
 
     typedef std::vector<std::vector<TH2D>> TagTH2D;
+    typedef std::vector<std::vector<std::vector<double>>> TagVector;
     typedef std::vector<std::vector<int>> TagNumber;
     typedef std::string JetCategory;
 
@@ -45,16 +46,16 @@ class JetRegistry {
  
     // histograms for the jets that pass selection (no btagging) 
     TH2D good_jets_; 
-    TH2D good_b_jets_; 
-    TH2D good_c_jets_; 
-    TH2D good_l_jets_; 
-    TH2D good_x_jets_; 
+    std::vector<double> good_b_jets_;
+    std::vector<double> good_c_jets_;
+    std::vector<double> good_l_jets_;
+    std::vector<double> good_x_jets_;
     // vector of vector of histograms for tagged jets for each tagger and WP
     TagTH2D tag_jets_;
-    TagTH2D tag_b_jets_;
-    TagTH2D tag_c_jets_;
-    TagTH2D tag_l_jets_;
-    TagTH2D tag_x_jets_;
+    TagVector tag_b_jets_;
+    TagVector tag_c_jets_;
+    TagVector tag_l_jets_;
+    TagVector tag_x_jets_;
 
     // event counts for each event category pair <[x,l,c,b1,...,bn],[counts, sumw2]>
     std::map<JetCategory, std::vector<double>> cat_counts_;   

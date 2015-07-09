@@ -4,5 +4,6 @@
   <class name="Component"/>
   <class name="Model"/>
   <class name="ModelPdf"/>
-  <enum name="Norm" />
+  <enum name="Norm"/>
+  <class name="std::map<std::string,vector<double>>"/> 
 </lcgdict>  

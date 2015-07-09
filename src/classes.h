@@ -12,6 +12,7 @@ namespace { struct dict_FtCM {
   Model dummy3;
   Norm dummy4;
   ModelPdf dummy5;
+  std::map<std::string,vector<double>> dummy6;
 };
 }
 
