@@ -44,24 +44,27 @@ ClassImp(ModelPdf)
 
  Double_t ModelPdf::evaluate() const 
  { 
+   // cache some parameters (avoid access overhead)
    double value = 0.0;
    double lumi = double(lumi_);
    double kappa = double(kappa_);
+   std::vector<double> tag_effs(tag_effs_.getSize(),0.0);  
+   for (std::size_t j_i=0; j_i < std::size_t(tag_effs_.getSize()); j_i++) 
+     tag_effs[j_i] = dynamic_cast<RooAbsReal&>(tag_effs_[j_i]).getVal();
    for (std::size_t s_i=0; s_i < cat_.size(); s_i++) { // for each sample
     double pretag_eff =  dynamic_cast<RooAbsReal&>(pretag_effs_[s_i]).getVal();
     double xsec =  dynamic_cast<RooAbsReal&>(xsecs_[s_i]).getVal();
     for (std::size_t c_i=0; c_i < cat_.at(s_i).size(); c_i++) { // for each category
-      std::string cat = cat_.at(s_i).at(c_i);
-      double frac = frac_.at(s_i).at(c_i);
+      const std::string & cat = cat_.at(s_i).at(c_i);
+      const double & frac = frac_.at(s_i).at(c_i);
       // for each combination
-      for (std::string & comb : FtCM::submultiset(cat, n_tag_)) { 
+      for (const std::string & comb : FtCM::submultiset(cat, n_tag_)) { 
         double prod = 1.0;
         for (std::size_t j_i=0; j_i < cat.size(); j_i++) {
           int i = cat.at(j_i)-'0'; 
           int i_p = comb.at(j_i)-'0';
-          double eff = dynamic_cast<RooAbsReal&>(tag_effs_[j_i]).getVal();
-          prod *= TMath::Binomial(i, i_p)*std::pow(eff,i_p)*
-                  std::pow(1.0-eff, i-i_p);
+          prod *= TMath::Binomial(i, i_p)*std::pow(tag_effs[j_i],i_p)*
+            std::pow(1.0-tag_effs[i], i-i_p);
         } 
         // update value sum
         if (norms_.at(s_i) == SIGNAL)  { 

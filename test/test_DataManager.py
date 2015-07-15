@@ -4,8 +4,8 @@ from mut_framework.BTagSF_FtCM.DataManager import Sample, DataManager
 ttbar = Sample("../output/TTbar_Summer13.json", "TTbar", 6923750, 240.0)
 
 print "PreTagging Efficiency: " + str(ttbar.pretag_eff())
-tagger = "combinedMVABJetTags"
-workPoint = 0.8
+tagger = "combinedSecondaryVertexBJetTags"
+workPoint = 0.679
 print "tagMultiplicity: " + str(ttbar.tag_multiplicity(tagger, workPoint))
 cat_fractions = ttbar.cat_fractions() 
 print "catFractions: " + str(cat_fractions)

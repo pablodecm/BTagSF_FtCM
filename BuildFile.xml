@@ -4,4 +4,6 @@
 <use name="rootgraphics"/>
 <use name="mut_framework/mut_dataformats"/>
 <use name="roofit"/>
-
+<export>
+  <lib name="1"/>
+</export>

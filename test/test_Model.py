@@ -22,16 +22,8 @@ for mc_s in mc_samples:
 for data_s in data_samples:
     m.add_data_component(*data_s)
 
-cat_mapping = vector(vector("int"))()    
-for i in range(4):
-    cat_mapping.push_back(vector("int")())
-    cat_mapping[i] += [i]
 
-m.set_category_mapping(cat_mapping)
-m.set_tag_wp("combinedMVABJetTags", 0.4)
-for i in range(3):
-    m.tag_effs_[i].setConstant()
+m.set_tag_wp("combinedSecondaryVertexBJetTags", 0.679)
 m.set_pdfs(max_n_tags)
-data = m.get_data_hist(max_n_tags)
-m.sim_pdf_.fitTo(data, RooFit.Extended()) 
+
 

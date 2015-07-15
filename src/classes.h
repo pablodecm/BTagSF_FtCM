@@ -4,6 +4,7 @@
 #include "mut_framework/BTagSF_FtCM/interface/Component.h"
 #include "mut_framework/BTagSF_FtCM/interface/Model.h"
 #include "mut_framework/BTagSF_FtCM/interface/ModelPdf.h"
+#include "mut_framework/BTagSF_FtCM/interface/PtBinPdf.h"
 
 namespace { struct dict_FtCM {
   JetCounter dummy0;
@@ -13,6 +14,7 @@ namespace { struct dict_FtCM {
   Norm dummy4;
   ModelPdf dummy5;
   std::map<std::string,vector<double>> dummy6;
+  PtBinPdf dummy7;
 };
 }
 

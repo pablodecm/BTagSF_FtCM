@@ -42,7 +42,15 @@ class Component {
     
     // vector to count good jets and tagged jets of each category
     std::vector<double> good_cat_jets_;
+    std::vector<double> good_b_jets_;
+    std::vector<double> good_c_jets_;
+    std::vector<double> good_l_jets_;
+    std::vector<double> good_x_jets_;
     std::vector<std::vector<std::vector<double>>> tag_cat_jets_;
+    std::vector<std::vector<std::vector<double>>> tag_b_jets_;
+    std::vector<std::vector<std::vector<double>>> tag_c_jets_;
+    std::vector<std::vector<std::vector<double>>> tag_l_jets_;
+    std::vector<std::vector<std::vector<double>>> tag_x_jets_;
 
     // event counts for each event category pair <[x,l,c,b1,...,bn],[counts, sumw2]>
     std::map<std::string, std::vector<double>> cat_counts_;   
@@ -67,8 +75,18 @@ class Component {
     std::string get_name() const { return c_name_; }
     std::vector<double> get_pretag_eff() const;
     std::vector<double> get_good_cat_jets() const;
+    std::vector<double> get_good_b_jets() const;
+    std::vector<double> get_good_c_jets() const;
+    std::vector<double> get_good_l_jets() const;
     std::vector<double> get_tag_cat_jets() const;
+    std::vector<double> get_tag_b_jets() const;
+    std::vector<double> get_tag_c_jets() const;
+    std::vector<double> get_tag_l_jets() const;
+    std::vector<double> get_tag_x_jets() const;
     std::vector<double> get_tag_multiplicity() const;
+    std::vector<double> get_mean_b_jet_mul() const;
+    std::vector<double> get_mean_c_jet_mul() const;
+    std::vector<double> get_mean_l_jet_mul() const;
     std::map<std::string, std::vector<double>> get_cat_fractions() const;
 
 };
