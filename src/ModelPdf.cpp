@@ -64,7 +64,7 @@ ClassImp(ModelPdf)
           int i = cat.at(j_i)-'0'; 
           int i_p = comb.at(j_i)-'0';
           prod *= TMath::Binomial(i, i_p)*std::pow(tag_effs[j_i],i_p)*
-            std::pow(1.0-tag_effs[i], i-i_p);
+            std::pow(1.0-tag_effs[j_i], i-i_p);
         } 
         // update value sum
         if (norms_.at(s_i) == SIGNAL)  { 
