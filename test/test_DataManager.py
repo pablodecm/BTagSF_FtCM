@@ -26,5 +26,5 @@ data_samples = [Sample("../output/Data_2012ABCD_Winter13_ReReco.json", "Data_201
 lumi = 19789.0
 
 dm = DataManager(mc_samples, data_samples, lumi )
-dm.save_to_file("../output/reduced_results.json")
+#dm.save_to_file("../output/reduced_results.json")
 

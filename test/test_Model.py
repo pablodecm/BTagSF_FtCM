@@ -1,7 +1,7 @@
 from ROOT import Model, ModelPdf 
-from ROOT import RooArgSet 
+from ROOT import RooArgSet, RooArgList, RooAddition 
 from ROOT import RooUniform, RooSimultaneous, RooExtendPdf 
-from ROOT import RooFit
+from ROOT import RooFit, RooMinuit
 from ROOT import vector
 
 mc_samples = [["../output/TTbar_Summer13.json", 6923750, 240.0, 0 ],
@@ -14,7 +14,7 @@ mc_samples = [["../output/TTbar_Summer13.json", 6923750, 240.0, 0 ],
 data_samples = [["../output/Data_2012ABCD_Winter13_ReReco.json"]]
 
 lumi = 19789.0
-max_n_tags = 7 
+max_n_tags = 6 
 
 m = Model(lumi)
 for mc_s in mc_samples:
@@ -25,5 +25,14 @@ for data_s in data_samples:
 
 m.set_tag_wp("combinedSecondaryVertexBJetTags", 0.679)
 m.set_pdfs(max_n_tags)
+
+h_ftcm = m.get_data_hist(max_n_tags)
+h_kin = m.get_data_kin_hist()
+nll_ftcm = m.sim_pdf_.createNLL(h_ftcm, RooFit.Extended(), RooFit.NumCPU(6))
+nll_kin = m.sim_kin_pdf_.createNLL(h_kin, RooFit.Extended(), RooFit.NumCPU(4))
+nll = RooAddition("nll","nll",RooArgList(nll_ftcm,nll_kin))
+minuit = RooMinuit(nll)
+minuit.migrad()
+
 
 

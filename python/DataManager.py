@@ -14,17 +14,13 @@ class Sample:
         self.s_name = s_name    
         self.isData = isData
         self.isSignal = isSignal
-        self.taggers = j["taggers"]    
-        self.workPoints = j["workPoints"]    
-        self.ptBins = j["ptBins"]
-        self.etaBins = j["etaBins"]
         self.nEventGen = nEventGen
-        self.good_cat_jets = j["good_cat_jets"] 
-        self.tag_cat_jets = j["tag_cat_jets"]
-        self.xSec = xSec
-        self.nEventPass = j["nEventPass"]
-        self.tagMultiplicity = j["tagMultiplicity"]
-        self.cat_counts = {tuple(int(n) for n in k) : v for k,v in j["cat_counts"].items()} 
+        # set atributes from JSON fields
+        for k,v in j.items():
+            if k == "cat_counts":
+                self.cat_counts = {tuple(int(n) for n in k_c) : v_c for k_c,v_c in v.items()}
+            else:    
+                setattr(self,k,v)
 
     def pretag_eff(self):     
         return float(self.nEventPass[1])/float(self.nEventGen)
