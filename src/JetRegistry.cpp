@@ -9,6 +9,7 @@ JetRegistry::JetRegistry(const std::vector<std::string> & taggers,
                          workPoints_(workPoints),
                          ptBins_(ptBins),
                          etaBins_(etaBins),
+                         jetMultiplicity_(10, 0.0),
                          good_cat_jets_(3+(ptBins_.size()-1)*(etaBins_.size()-1), 0.0),
                          good_jets_("good_jets","", ptBins.size()-1, ptBins.data(), etaBins.size()-1, etaBins.data()),
                          good_b_jets_((ptBins_.size()-1)*(etaBins_.size()-1), 0.0),
@@ -35,13 +36,17 @@ JetRegistry::JetRegistry(const std::vector<std::string> & taggers,
       tag_c_jets_.back().emplace_back((ptBins_.size()-1)*(etaBins_.size()-1), 0.0);
       tag_l_jets_.back().emplace_back((ptBins_.size()-1)*(etaBins_.size()-1), 0.0);
       tag_x_jets_.back().emplace_back((ptBins_.size()-1)*(etaBins_.size()-1), 0.0);
-      // init multiplicity counting (max 10 b jet multiplicity)
+      // init multiplicity counting (max 10 jet multiplicity)
       tagMultiplicity_.back().emplace_back(10, 0.0);
       // init tag cat jet counts
       tag_cat_jets_.back().emplace_back(3+(ptBins_.size()-1)*(etaBins_.size()-1), 0.0);
     }
   }
 }
+
+void JetRegistry::registerJetMultiplicity(const int & nGoodJets, double eWeight) {
+  jetMultiplicity_[nGoodJets] += eWeight;
+} 
 
 int JetRegistry::registerJet( const mut::Jet & jet,
                               TagNumber & tagNumber,
@@ -162,6 +167,7 @@ void JetRegistry::serialize( std::ostream & os) {
   j["tag_l_jets"] = tag_l_jets_;
   j["tag_x_jets"] = tag_x_jets_;
   j["tagMultiplicity"] = tagMultiplicity_;
+  j["jetMultiplicity"] = jetMultiplicity_;
   j["cat_counts"] = cat_counts_;
 
   os << std::setw(4) << j << std::endl;

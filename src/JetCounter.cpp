@@ -77,6 +77,9 @@ Bool_t JetCounter::Process(Long64_t entry)
   // get event weight ( it will be 1 for data)
   double weight = getEventWeight();
 
+  // fill jet multiplicity
+  jetRegistry_->registerJetMultiplicity(good_jets_index.size(), weight);
+
   // for each good jet index
   for (auto j : good_jets_index) {
     // reference to current jet

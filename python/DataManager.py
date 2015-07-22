@@ -14,6 +14,7 @@ class Sample:
         self.s_name = s_name    
         self.isData = isData
         self.isSignal = isSignal
+        self.xSec = xSec
         self.nEventGen = nEventGen
         # set atributes from JSON fields
         for k,v in j.items():
@@ -47,6 +48,91 @@ class DataManager:
         self.lumi = lumi
         self.n_cat = len(mc_samples[0].good_cat_jets)
 
+    def set_tag_wp( self, tagger, workPoint):
+        self.i_tag = self.mc_samples[0].taggers.index(tagger)
+        self.i_wp = self.mc_samples[0].workPoints[self.i_tag].index(workPoint)
+
+    def ptBins(self):
+        return self.mc_samples[0].ptBins
+
+    def good_jets_by_type(self, x_jets = False):
+        gj_dict = { "data": [], "b_jets": [], "c_jets": [], "l_jets": []}
+        if x_jets: gj_dict["x_jets"] = []
+        for k_c in range(len(self.data_samples[0].good_x_jets)):
+            gj_dict["data"].append(sum([ s.good_x_jets[k_c] for s in self.data_samples]))
+        for cat in (["b_jets","c_jets","l_jets"]+["x_jets"]*x_jets):
+            for k_c in range(len(self.mc_samples[0].good_b_jets)):
+                j_count = [self.lumi*s.xSec*getattr(s,"good_"+cat)[k_c]/s.nEventGen \
+                                                          for s in self.mc_samples]
+                gj_dict[cat].append(sum(j_count))
+        if not x_jets:
+            for k_c in range(len(self.mc_samples[0].good_b_jets)):
+                x_count = [ self.lumi*s.good_x_jets[k_c]*s.xSec/s.nEventGen for s in self.mc_samples]
+                gj_dict["l_jets"][k_c] += sum(x_count)
+        return gj_dict        
+
+    def good_jets_by_sample(self):
+        gj_dict = {"data" : []}
+        for k_c in range(len(self.data_samples[0].good_x_jets)):
+            gj_dict["data"].append(sum([ s.good_x_jets[k_c] for s in self.data_samples]))
+        for s in self.mc_samples:
+            gj_dict[s.s_name] = [sum(c_t) for c_t in zip(*[getattr(s, 
+                                "good_{}_jets".format(t)) for t in ["b","c","l","x"]])]
+            for k_c in range(len(self.mc_samples[0].good_b_jets)):
+                gj_dict[s.s_name][k_c] = self.lumi*gj_dict[s.s_name][k_c]*s.xSec/s.nEventGen 
+        return gj_dict     
+
+    def tag_jets_by_type(self, x_jets = False):
+        gj_dict = { "data": [], "b_jets": [], "c_jets": [], "l_jets": []}
+        if x_jets: gj_dict["x_jets"] = []
+        for k_c in range(len(self.data_samples[0].tag_x_jets[self.i_tag][self.i_wp])):
+            gj_dict["data"].append(sum([ s.tag_x_jets[self.i_tag][self.i_wp][k_c] for s in self.data_samples]))
+        for cat in (["b_jets","c_jets","l_jets"]+["x_jets"]*x_jets):
+            for k_c in range(len(self.mc_samples[0].tag_b_jets)):
+                j_count = [self.lumi*s.xSec*getattr(s,
+                    "tag_"+cat)[self.i_tag][self.i_wp][k_c]/s.nEventGen for s in self.mc_samples]
+                gj_dict[cat].append(sum(j_count))
+        if not x_jets:
+            for k_c in range(len(self.mc_samples[0].tag_b_jets[self.i_tag][self.i_wp] )):
+                x_count = [ self.lumi*s.tag_x_jets[self.i_tag][self.i_wp][k_c] * \
+                                  s.xSec/s.nEventGen for s in self.mc_samples]
+                gj_dict["l_jets"][k_c] += sum(x_count)
+        return gj_dict        
+
+    def tag_jets_by_sample(self):
+        gj_dict = {"data" : []}
+        for k_c in range(len(self.data_samples[0].tag_x_jets[self.i_tag][self.i_wp])):
+            gj_dict["data"].append(sum([ s.tag_x_jets[self.i_tag][self.i_wp][k_c] \
+                                                      for s in self.data_samples]))
+        for s in self.mc_samples:
+            gj_dict[s.s_name] = [sum(c_t) for c_t in zip(*[getattr(s, 
+                                "tag_{}_jets".format(t))[self.i_tag][self.i_wp] \
+                                                  for t in ["b","c","l","x"]])]
+            for k_c in range(len(self.mc_samples[0].tag_b_jets[self.i_tag][self.i_wp])):
+                gj_dict[s.s_name][k_c] = self.lumi*gj_dict[s.s_name][k_c]*s.xSec/s.nEventGen 
+
+        return gj_dict     
+
+    def tag_mul_by_sample(self):
+        tm_dict = {}
+        tag_mul_ps = [ s.tagMultiplicity[self.i_tag][self.i_wp] for s in self.data_samples ] 
+        tm_dict["data"] =  [sum(n_jets) for n_jets in zip(*tag_mul_ps)] 
+        for s in self.mc_samples:
+            tm_dict[s.s_name] = [self.lumi*b_c*s.xSec/s.nEventGen  \
+                    for  b_c in s.tagMultiplicity[self.i_tag][self.i_wp]]
+
+        return tm_dict     
+ 
+    def jet_mul_by_sample(self):
+        jm_dict = {}
+        jet_mul_ps = [ s.jetMultiplicity for s in self.data_samples ] 
+        jm_dict["data"] =  [sum(n_jets) for n_jets in zip(*jet_mul_ps)] 
+        for s in self.mc_samples:
+            jm_dict[s.s_name] = [self.lumi*b_c*s.xSec/s.nEventGen  \
+                    for  b_c in s.jetMultiplicity]
+
+        return jm_dict     
+      
     def data_tag_multiplicity(self):
         tag_mul = []
         for t in range(len(self.data_samples[0].taggers)): 

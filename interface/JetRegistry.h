@@ -39,6 +39,8 @@ class JetRegistry {
 
     // this is to count the tagged jet multiplicity
     std::vector<std::vector<std::vector<double>>> tagMultiplicity_;
+    // also pre tag jet multiplicity
+    std::vector<double> jetMultiplicity_;
     
     // vector to count good jets and tagged jets of each category
     std::vector<double> good_cat_jets_;
@@ -71,6 +73,9 @@ class JetRegistry {
 
     // destructor
     ~JetRegistry() {}
+
+    // save jet multiplicity (pretag)
+    void registerJetMultiplicity(const int & nGoodJets, double eWeight);
 
     // add a jet to all the histograms and returns the category of the jet
     int registerJet( const mut::Jet & jet,
