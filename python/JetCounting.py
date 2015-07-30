@@ -8,7 +8,7 @@ class JetCountingManager():
     jetCounter = JetCounter()
     out_dir = "../output/" 
 
-    def __init__(self, ptBins, etaBins, taggers ):
+    def __init__(self, ptBins, etaBins, taggers, oldMuonSF = True ):
         # pt bins
         vec_ptBins = vector('double')()
         vec_ptBins += ptBins
@@ -17,6 +17,8 @@ class JetCountingManager():
         vec_etaBins = vector('double')()
         vec_etaBins += etaBins 
         self.jetCounter.setEtaBins(vec_etaBins)
+        # use old SF
+        self.jetCounter.useOldMuonSF(oldMuonSF)
 
         for k, v in taggers.items():
             workPoints = vector('double')()

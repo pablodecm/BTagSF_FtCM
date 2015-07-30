@@ -133,6 +133,14 @@ double JetCounter::getEventWeight() {
     for ( auto eWeight : eWeights_ ) {
       weight*=eventInfo->getWeight(eWeight);
     }
+    if (useOldMuonSF_) { // apply muon SF as a function of eta
+      double muon_eta = muons->at(0).eta();
+      if (std::abs(muon_eta) <= 0.9) {weight *= 0.994*0.993*0.976;}
+      else if (std::abs(muon_eta) > 0.9 && std::abs(muon_eta) <= 1.2 ) 
+        {weight *= 0.992*0.998*0.961;}
+      else if (std::abs(muon_eta) > 1.2 && std::abs(muon_eta) <= 2.1 )
+        {weight *= 0.998*1.002*0.983; }
+    }
   }   
 
   return weight;
