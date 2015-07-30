@@ -50,9 +50,20 @@ Bool_t JetCounter::Process(Long64_t entry)
     for ( std::size_t j = 0; j < pfjets->size(); j++) {
       const auto & pfjet = pfjets->at(j);
       // fill will return -1 if not in pt/eta region
-      if (all_good_jets->Fill( pfjet.pt() , pfjet.eta()) > 0) 
-        good_jets_index.emplace_back(j);
+      if (all_good_jets->Fill( pfjet.pt() , pfjet.eta()) > 0) { 
+        // check if each jet passes the corresponding pt criteria
+        if (good_jets_index.size() < min_pt_jets_.size()) {
+          if (pfjet.pt() >=  min_pt_jets_.at(good_jets_index.size())) {
+            good_jets_index.emplace_back(j);
+          }
+        } else {
+          if (pfjet.pt() >=  min_pt_jets_.back()) {
+            good_jets_index.emplace_back(j);
+          }
+        } 
+      }
     } 
+
     // pass event selection if 4 or more good jets
     if (good_jets_index.size() >= 4) {
       pass_event_sel = true;
