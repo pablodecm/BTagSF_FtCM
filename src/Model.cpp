@@ -288,6 +288,55 @@ std::vector<double> Model::get_data_kin_categories() const {
   return kin_cat_counts;
 }
 
+std::vector<double> Model::get_mc_tag_multiplicity() const {
+
+  std::vector<double> tag_multiplicity;
+  
+  double lumi = lumi_.getVal();
+  double kappa = kappa_.getVal();
+
+  for (std::size_t n_s = 0; n_s < mc_comps_.size(); n_s++) {
+    double nEventGen =  mc_comps_.at(n_s).nEventGen_;
+    double xsec =  dynamic_cast<RooAbsReal&>(xsecs_[n_s]).getVal();
+    std::vector<double> tag_mul_mc = mc_comps_.at(n_s).get_tag_multiplicity();
+    if ( n_s == 0 ) tag_multiplicity = std::vector<double> (tag_mul_mc.size(),0.0);
+    for (std::size_t i_j = 0; i_j < tag_multiplicity.size(); i_j++) {
+     if (mc_norms_.at(n_s) == SIGNAL ) { 
+      tag_multiplicity.at(i_j) += tag_mul_mc.at(i_j)*lumi*xsec/nEventGen;
+     } else if (mc_norms_.at(n_s) == BKG) {
+      tag_multiplicity.at(i_j) += tag_mul_mc.at(i_j)*kappa*lumi*xsec/nEventGen;
+     }
+   }
+  }
+
+  return tag_multiplicity;
+}
+
+std::vector<double> Model::get_mc_kin_categories() const {
+
+  std::vector<double> kin_cat_counts;
+  
+  double lumi = lumi_.getVal();
+  double kappa = kappa_.getVal();
+
+  for (std::size_t n_s = 0; n_s < mc_comps_.size(); n_s++) {
+    double nEventGen =  mc_comps_.at(n_s).nEventGen_;
+    double xsec =  dynamic_cast<RooAbsReal&>(xsecs_[n_s]).getVal();
+    std::vector<double> kin_cat_mc = mc_comps_.at(n_s).get_good_jets();
+    if ( n_s == 0 ) kin_cat_counts = std::vector<double> (kin_cat_mc.size(),0.0);
+    for (std::size_t i_j = 0; i_j < kin_cat_counts.size(); i_j++) {
+     if (mc_norms_.at(n_s) == SIGNAL ) { 
+      kin_cat_counts.at(i_j) += kin_cat_mc.at(i_j)*lumi*xsec/nEventGen;
+     } else if (mc_norms_.at(n_s) == BKG) {
+      kin_cat_counts.at(i_j) += kin_cat_mc.at(i_j)*kappa*lumi*xsec/nEventGen;
+     }
+   }
+  }
+
+    return kin_cat_counts;
+}
+
+
 
 ModelPdf Model::get_n_tag_pdf(unsigned n_tag) {
 
@@ -371,6 +420,17 @@ RooDataHist Model::get_data_hist(int min_n_tag, int max_n_tag) {
   return data_hist;
 }
 
+RooDataHist Model::get_mc_hist(int min_n_tag, int max_n_tag) {
+  std::vector<double> mc_tag_mul = get_mc_tag_multiplicity();
+  RooDataHist mc_hist("mc_hist","mc_hist", RooArgSet(mul_tag_));
+  for (std::size_t n_t=std::size_t(min_n_tag); n_t<=std::size_t(max_n_tag); n_t++) {
+    std::string n_tag_cat  = std::to_string(n_t) + "_tag_jets";
+    mul_tag_.setLabel(n_tag_cat.c_str());
+    mc_hist.add(RooArgSet(mul_tag_), mc_tag_mul.at(n_t));
+  }
+  return mc_hist;
+}
+
 RooDataHist Model::get_data_kin_hist() {
   std::vector<double> data_kin_cat = get_data_kin_categories();
   RooDataHist data_kin_hist("data_kin_hist","data_kin_hist", RooArgSet(kin_cat_));
@@ -379,6 +439,16 @@ RooDataHist Model::get_data_kin_hist() {
     data_kin_hist.add(RooArgSet(kin_cat_), data_kin_cat.at(n_c));
   }
   return data_kin_hist;
+}
+
+RooDataHist Model::get_mc_kin_hist() {
+  std::vector<double> mc_kin_cat = get_mc_kin_categories();
+  RooDataHist mc_kin_hist("mc_kin_hist","mc_kin_hist", RooArgSet(kin_cat_));
+  for (std::size_t n_c=0; n_c<mc_kin_cat.size(); n_c++) {
+    kin_cat_.setIndex(n_c);
+    mc_kin_hist.add(RooArgSet(kin_cat_), mc_kin_cat.at(n_c));
+  }
+  return mc_kin_hist;
 }
 
 

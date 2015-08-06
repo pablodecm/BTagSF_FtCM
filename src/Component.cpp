@@ -108,6 +108,16 @@ std::vector<double> Component::get_good_l_jets() const {
   return good_l_jets;
 }
 
+std::vector<double> Component::get_good_jets() const {
+  std::vector<double> good_jets = good_b_jets_;
+  for (std::size_t i=0; i < good_jets.size(); i++) {
+    good_jets.at(i) += good_c_jets_.at(i);
+    good_jets.at(i) += good_l_jets_.at(i);
+    good_jets.at(i) += good_x_jets_.at(i);
+  }
+  return good_jets;
+}
+
 std::vector<double> Component::get_tag_cat_jets() const {
 
   std::vector<double> tag_cat_jets;

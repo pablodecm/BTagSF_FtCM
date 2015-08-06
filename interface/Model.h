@@ -79,8 +79,12 @@ class Model {
     std::vector<double> get_b_jet_tag_effs() const;
     std::vector<double> get_c_jet_tag_effs() const;
     std::vector<double> get_l_jet_tag_effs() const;
+
     std::vector<double> get_data_tag_multiplicity() const;
     std::vector<double> get_data_kin_categories() const;
+
+    std::vector<double> get_mc_tag_multiplicity() const;
+    std::vector<double> get_mc_kin_categories() const;
 
     ModelPdf get_n_tag_pdf(unsigned n_tag);
     ModelPdf * get_n_tag_pdf_ptr(unsigned n_tag);
@@ -88,9 +92,9 @@ class Model {
     PtBinPdf * get_pt_bin_pdf_ptr(unsigned n_bin);
 
     RooDataHist get_data_hist(int min_n_tag = 0, int max_n_tag = 4);
+    RooDataHist get_mc_hist(int min_n_tag = 0, int max_n_tag = 4);
     RooDataHist get_data_kin_hist();
-    
-
+    RooDataHist get_mc_kin_hist();
     
 };
 

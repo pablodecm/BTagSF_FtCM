@@ -78,6 +78,7 @@ class Component {
     std::vector<double> get_good_b_jets() const;
     std::vector<double> get_good_c_jets() const;
     std::vector<double> get_good_l_jets() const;
+    std::vector<double> get_good_jets() const;
     std::vector<double> get_tag_cat_jets() const;
     std::vector<double> get_tag_b_jets() const;
     std::vector<double> get_tag_c_jets() const;
