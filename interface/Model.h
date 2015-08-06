@@ -73,7 +73,7 @@ class Model {
 
     void set_category_mapping( std::vector<std::vector<int>> cat_mapping) ;
     void set_tag_wp(std::string tag, double wp);
-    void set_pdfs(int max_n_tag = 4);
+    void set_pdfs(int min_n_tag = 0, int max_n_tag = 4);
 
     std::vector<double> get_mc_tag_effs() const;
     std::vector<double> get_b_jet_tag_effs() const;
@@ -87,7 +87,7 @@ class Model {
 
     PtBinPdf * get_pt_bin_pdf_ptr(unsigned n_bin);
 
-    RooDataHist get_data_hist(int max_n_tag = 4);
+    RooDataHist get_data_hist(int min_n_tag = 0, int max_n_tag = 4);
     RooDataHist get_data_kin_hist();
     
 

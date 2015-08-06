@@ -1,14 +1,18 @@
 
 from ROOT import TChain, vector
 from ROOT import JetCounter
-from os.path import split
+from os.path import split, exists
+from os import makedirs
+
 
 class JetCountingManager():
     
-    jetCounter = JetCounter()
-    out_dir = "../output/" 
 
-    def __init__(self, ptBins, etaBins, taggers, oldMuonSF = True ):
+    def __init__(self, ptBins, etaBins, taggers, oldMuonSF = True, out_dir = "../output/" ):
+    
+        # pointer to selector
+        self.jetCounter = JetCounter()
+
         # pt bins
         vec_ptBins = vector('double')()
         vec_ptBins += ptBins
@@ -25,11 +29,15 @@ class JetCountingManager():
             workPoints += v
             self.jetCounter.addTagger(k, workPoints) 
 
+        self.out_dir = out_dir    
+
         return None
 
 
     def process(self, samples, isData = False):
    
+        if not exists(self.out_dir):
+            makedirs(self.out_dir)
         out_fn = []
         for sample in samples:
             tchain = TChain("tree")

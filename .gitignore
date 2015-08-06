@@ -1,6 +1,10 @@
 *.pdf
 .nfs*
 *.pyc
+*.out
+*.err
+*.ipynb_checkpoints
+*.root
 output
 python/__init__.py
 test/RooFormula*

@@ -123,20 +123,23 @@ void Model::set_tag_wp(std::string tag, double wp) {
   }
 }
 
-void Model::set_pdfs(int max_n_tag) {
+void Model::set_pdfs(int min_n_tag, int max_n_tag) {
 
-  for (std::size_t n_t=0; n_t<std::size_t(max_n_tag); n_t++) {
+  // set tag multiplicity pdf
+  for (std::size_t n_t=0; n_t<=std::size_t(max_n_tag); n_t++) {
     pdf_norms_.addOwned(*get_n_tag_pdf_ptr(n_t));
     std::string n_ext_pdf = "ext_" + std::string(pdf_norms_[n_t].GetName());
     RooExtendPdf * ext_pdf = new RooExtendPdf(n_ext_pdf.c_str(), n_ext_pdf.c_str(),
                                  uni_, dynamic_cast<RooAbsPdf &>(pdf_norms_[n_t]));
     ext_pdfs_.addOwned(*ext_pdf);
-    std::string n_tag_cat  = std::to_string(n_t) + "_tag_jets";
-    mul_tag_.defineType(n_tag_cat.c_str());
-    sim_pdf_.addPdf(dynamic_cast<RooAbsPdf &>(ext_pdfs_[n_t]), n_tag_cat.c_str());
+    if (n_t >= std::size_t(min_n_tag)) {
+      std::string n_tag_cat  = std::to_string(n_t) + "_tag_jets";
+      mul_tag_.defineType(n_tag_cat.c_str());
+      sim_pdf_.addPdf(dynamic_cast<RooAbsPdf &>(ext_pdfs_[n_t]), n_tag_cat.c_str());
+    }
   }
 
-  std::cout << "Setting kin pdfs" << std::endl;
+  // set kinematic bin pdf
   for (std::size_t n_b=0; n_b<mean_b_jet_muls_.size(); n_b++) {
     kin_pdf_norms_.addOwned(*get_pt_bin_pdf_ptr(n_b));
     std::string n_ext_pdf = "ext_" + std::string(kin_pdf_norms_[n_b].GetName());
@@ -149,7 +152,6 @@ void Model::set_pdfs(int max_n_tag) {
     sim_kin_pdf_.addPdf(dynamic_cast<RooAbsPdf &>(ext_kin_pdfs_[n_b]), kin_bin_cat.c_str());
   }
 
-  std::cout << "Set pdf work" << std::endl;
 
 }
 
@@ -345,11 +347,6 @@ PtBinPdf * Model::get_pt_bin_pdf_ptr(unsigned n_bin) {
 
   // create pdf pointer
   std::string pdf_name = "pt_bin_" + std::to_string(n_bin) + "_pdf";
-  std::cout << "Getting kin pdf ptr " << n_bin << std::endl;
-  std::cout << "mean_b_jet_muls_.size() " << mean_b_jet_muls_.size() << std::endl;
-  std::cout << "mean_b_jet_muls_.size() " << mean_c_jet_muls_.size() << std::endl;
-  std::cout << "mean_b_jet_muls_.size() " << mean_l_jet_muls_.size() << std::endl;
-
   PtBinPdf * p_pdf = new PtBinPdf(pdf_name.c_str(), pdf_name.c_str(),
                                   n_bin, lumi_, kappa_, pretag_effs_, 
                                   xsecs_, tag_effs_,
@@ -363,11 +360,12 @@ PtBinPdf * Model::get_pt_bin_pdf_ptr(unsigned n_bin) {
 }
 
 
-RooDataHist Model::get_data_hist(int max_n_tag) {
+RooDataHist Model::get_data_hist(int min_n_tag, int max_n_tag) {
   std::vector<double> data_tag_mul = get_data_tag_multiplicity();
   RooDataHist data_hist("data","data", RooArgSet(mul_tag_));
-  for (std::size_t n_t=0; n_t<std::size_t(max_n_tag); n_t++) {
-    mul_tag_.setIndex(n_t);
+  for (std::size_t n_t=std::size_t(min_n_tag); n_t<=std::size_t(max_n_tag); n_t++) {
+    std::string n_tag_cat  = std::to_string(n_t) + "_tag_jets";
+    mul_tag_.setLabel(n_tag_cat.c_str());
     data_hist.add(RooArgSet(mul_tag_), data_tag_mul.at(n_t));
   }
   return data_hist;

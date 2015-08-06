@@ -61,7 +61,8 @@ void Component::set_tag_wp(std::string tag, double wp) {
   auto it_tag = std::find(taggers_.begin(), taggers_.end(), tag);
   i_tag_ = std::distance(taggers_.begin(), it_tag);
   // set wp index
-  auto it_wp = std::find(workPoints_[i_tag_].begin(), workPoints_[i_tag_].end(), wp);
+  auto it_wp = std::find_if(workPoints_[i_tag_].begin(), workPoints_[i_tag_].end(),
+                            [&] (const double & wp_val) { return (std::abs(wp_val - wp ) < 1.e-6);});
   i_wp_ = std::distance(workPoints_[i_tag_].begin(), it_wp);
 
 }
