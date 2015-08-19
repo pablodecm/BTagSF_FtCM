@@ -32,7 +32,7 @@ nll_ftcm = m.sim_pdf_.createNLL(h_ftcm, RooFit.Extended(), RooFit.NumCPU(6))
 nll_kin = m.sim_kin_pdf_.createNLL(h_kin, RooFit.Extended(), RooFit.NumCPU(4))
 nll = RooAddition("nll","nll",RooArgList(nll_ftcm,nll_kin))
 minuit = RooMinuit(nll)
-#minuit.migrad()
+minuit.migrad()
 
 
 

@@ -23,8 +23,9 @@ mc_samples = [["../output/TTbar_Summer13.json", 6923750, 240.0, 0 ],
 data_samples = [["../output/Data_2012ABCD_Winter13_ReReco.json"]]
 
 lumi = 19789.0
-min_n_tags = 1 
+min_n_tags = 0 
 max_n_tags = 4 
+useData = False
 
 tagger = args.tagger
 wp = args.workpoint
@@ -53,8 +54,13 @@ ln_b =  RooLognormal("log_normal_b","log_normal_b",
                          ln_b_k)
 simulpdf = RooProdPdf("simulpdf","simulpdf", m.sim_pdf_, ln_b)
 
-h_ftcm = m.get_data_hist(min_n_tags, max_n_tags)
-h_kin = m.get_data_kin_hist()
+if useData is True:
+    h_ftcm = m.get_data_hist(min_n_tags, max_n_tags)
+    h_kin = m.get_data_kin_hist()
+else:
+    h_ftcm = m.get_mc_hist(min_n_tags, max_n_tags)
+    h_kin = m.get_mc_kin_hist()
+
 nll_ftcm = simulpdf.createNLL(h_ftcm, RooFit.Extended(), RooFit.NumCPU(6))
 nll_kin = m.sim_kin_pdf_.createNLL(h_kin, RooFit.Extended(), RooFit.NumCPU(4))
 nll = RooAddition("nll","nll",RooArgList(nll_ftcm,nll_kin))
@@ -62,5 +68,4 @@ minuit = RooMinuit(nll)
 fit_result = minuit.fit("r")
 
 fit_result.SaveAs("fit_result_{}_{}.root".format(tagger,wp))
-
 

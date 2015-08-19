@@ -21,9 +21,10 @@ lumi = 19789.0
 min_n_tags = 0 
 max_n_tags = 4 
 
-wp_list = np.linspace(0.0,1.0,20).tolist()
+#wp_list = np.linspace(0.0,1.0,20).tolist()
+wp_list = [0.244, 0.679, 0.898]
 tagger = "combinedSecondaryVertexBJetTags"
-result_dir = "./CVS_wp_scan_w_0_bin/"
+result_dir = "./MC_study_CVS_wp_scan_w_0_bin/"
 
 if not os.path.exists(result_dir):
         os.makedirs(result_dir)
@@ -53,7 +54,7 @@ for  wp in wp_list:
                          ln_b_k)
     simulpdf = RooProdPdf("simulpdf","simulpdf", m.sim_pdf_, ln_b)
  
-    h_ftcm = m.get_data_hist(min_n_tags, max_n_tags)
+    h_ftcm = m.get_mc_hist(min_n_tags, max_n_tags)
     nll_ftcm = simulpdf.createNLL(h_ftcm, RooFit.Extended(), RooFit.NumCPU(6))
     minuit = RooMinuit(nll_ftcm)
     fit_result = minuit.fit("r")
