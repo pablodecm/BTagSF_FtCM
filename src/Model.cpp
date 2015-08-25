@@ -322,7 +322,7 @@ std::vector<double> Model::get_mc_kin_categories() const {
   for (std::size_t n_s = 0; n_s < mc_comps_.size(); n_s++) {
     double nEventGen =  mc_comps_.at(n_s).nEventGen_;
     double xsec =  dynamic_cast<RooAbsReal&>(xsecs_[n_s]).getVal();
-    std::vector<double> kin_cat_mc = mc_comps_.at(n_s).get_good_jets();
+    std::vector<double> kin_cat_mc = mc_comps_.at(n_s).get_tag_jets();
     if ( n_s == 0 ) kin_cat_counts = std::vector<double> (kin_cat_mc.size(),0.0);
     for (std::size_t i_j = 0; i_j < kin_cat_counts.size(); i_j++) {
      if (mc_norms_.at(n_s) == SIGNAL ) { 

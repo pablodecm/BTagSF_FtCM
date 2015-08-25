@@ -149,6 +149,18 @@ std::vector<double> Component::get_tag_l_jets() const {
 std::vector<double> Component::get_tag_x_jets() const {
   return tag_x_jets_.at(i_tag_).at(i_wp_);
 }
+
+std::vector<double> Component::get_tag_jets() const {
+  std::vector<double> tag_jets = tag_b_jets_.at(i_tag_).at(i_wp_);
+  for (std::size_t i=0; i < tag_jets.size(); i++) {
+    tag_jets.at(i) += tag_c_jets_.at(i_tag_).at(i_wp_).at(i);
+    tag_jets.at(i) += tag_l_jets_.at(i_tag_).at(i_wp_).at(i);
+    tag_jets.at(i) += tag_x_jets_.at(i_tag_).at(i_wp_).at(i);
+  }
+  return tag_jets;
+}
+
+
 std::vector<double> Component::get_tag_multiplicity() const {
   return tagMultiplicity_.at(i_tag_).at(i_wp_);
 }

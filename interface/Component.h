@@ -84,6 +84,7 @@ class Component {
     std::vector<double> get_tag_c_jets() const;
     std::vector<double> get_tag_l_jets() const;
     std::vector<double> get_tag_x_jets() const;
+    std::vector<double> get_tag_jets() const;
     std::vector<double> get_tag_multiplicity() const;
     std::vector<double> get_mean_b_jet_mul() const;
     std::vector<double> get_mean_c_jet_mul() const;
