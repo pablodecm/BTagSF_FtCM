@@ -48,7 +48,7 @@ void JetRegistry::registerJetMultiplicity(const int & nGoodJets, double eWeight)
   jetMultiplicity_[nGoodJets] += eWeight;
 } 
 
-int JetRegistry::registerJet( const mut::Jet & jet,
+std::string JetRegistry::registerJet( const mut::Jet & jet,
                               TagNumber & tagNumber,
                               double eWeight) {
 
@@ -56,27 +56,34 @@ int JetRegistry::registerJet( const mut::Jet & jet,
   int global_bin = good_jets_.Fill( jet.pt() , jet.eta());
   int bin_pt = global_bin%(ptBins_.size()+1);
   int bin_eta = ((global_bin-bin_pt)/(ptBins_.size()+1))%(etaBins_.size()+1);
-  // index
+  // index (start at 0)
   int cat_index = (bin_pt-1)+(bin_eta-1)*(etaBins_.size()-1);
+
   // global index
   int glob_index = cat_index;
+
+  // init jet type as unknown and char 47 (error) 
+  std::string jet_type = "x/";
+  jet_type.at(1) = char(cat_index); 
 
   int jet_flavour = jet.getPartonFlavour();
 
   if ( jet_flavour == 5) { // b jets
     good_b_jets_[cat_index] += eWeight;
-    glob_index += 3; // O is x, 1 is l and 2 is c
+    jet_type.at(0) = char(0);
   } else if ( jet_flavour == 4 ) { // c jets
     good_c_jets_[cat_index] += eWeight;
-    glob_index = 2; // O is x, 1 is l and 2 is c
+    jet_type.at(0) = char(1);
   } else if ( jet_flavour == 1 || jet_flavour == 2 ||
               jet_flavour == 3 || jet_flavour == 21 ) { // light jets
     good_l_jets_[cat_index] += eWeight;
-    glob_index = 1; // O is x, 1 is l and 2 is c
+    jet_type.at(0) = char(2);
   } else { //unknown jets
     good_x_jets_[cat_index] += eWeight;
-    glob_index = 0; // O is x, 1 is l and 2 is c
+    jet_type.at(0) = char(3);
   }
+
+  glob_index += int(jet_type.at(0));
 
   // add to good jets count
   good_cat_jets_[glob_index] += eWeight;
@@ -104,10 +111,11 @@ int JetRegistry::registerJet( const mut::Jet & jet,
     }
   }
 
-  return glob_index;
+  return jet_type;
 }
 
-bool JetRegistry::registerEvent( const JetCategory & cat,
+bool JetRegistry::registerEvent( const KinematicCategory & kin_cat,
+                                 const FlavourCategory & flav_cat,
                                  const TagNumber & tagNumber,
                                  double weight)
 {
@@ -115,14 +123,23 @@ bool JetRegistry::registerEvent( const JetCategory & cat,
   nEventPass_[1]+=weight;
   nEventPass_[2]+=weight*weight;
 
+  // concatenate flavout category (so it can be a JSON key)º
+  std::string j_flav_cat = "";
+  for ( const auto & flav_count : flav_cat) j_flav_cat += flav_count;
+
   // update category map
   bool key_existed = false;
-  if (cat_counts_.count(cat) > 0) {
-    key_existed = true;
-    cat_counts_[cat][0] += weight;
-    cat_counts_[cat][1] += weight*weight;
+  if (cat_counts_.count(kin_cat) > 0) {
+    if (cat_counts_[kin_cat].count(j_flav_cat) > 0) {
+      key_existed = true;
+      cat_counts_[kin_cat][j_flav_cat][0] += weight;
+      cat_counts_[kin_cat][j_flav_cat][1] += weight*weight;
+    } else {
+      cat_counts_[kin_cat][j_flav_cat] = {weight,weight*weight};
+    }
   } else {
-    cat_counts_[cat] = {weight,weight*weight};
+    cat_counts_[kin_cat] = std::map<std::string,std::vector<double>>();
+    cat_counts_[kin_cat][j_flav_cat] = {weight,weight*weight}; 
   }
 
   for (std::size_t t = 0; t < taggers_.size(); t++) {

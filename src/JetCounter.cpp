@@ -75,7 +75,8 @@ Bool_t JetCounter::Process(Long64_t entry)
   }
 
   // categories counts (init to zero)
-  JetRegistry::JetCategory cat((ptBins_.size()-1)*(etaBins_.size()-1)+3,'0');
+  JetRegistry::KinematicCategory kin_cat((ptBins_.size()-1)*(etaBins_.size()-1),'0');
+  JetRegistry::FlavourCategory flav_cat((ptBins_.size()-1)*(etaBins_.size()-1),"0000");
   // number of tagged jets (init at zero)
   JetRegistry::TagNumber tagNumber;
   for (std::size_t t = 0; t < taggers_.size(); t++) {
@@ -95,12 +96,13 @@ Bool_t JetCounter::Process(Long64_t entry)
   for (auto j : good_jets_index) {
     // reference to current jet
     const auto & good_jet = pfjets->at(j);
-    int cat_index = jetRegistry_->registerJet(good_jet, tagNumber, weight);
-    cat[cat_index]++;
+    std::string jet_type = jetRegistry_->registerJet(good_jet, tagNumber, weight);
+    kin_cat[jet_type[1]]++; // increment kin category
+    flav_cat[jet_type[1]][jet_type[0]]++; // increment flavour for kinematic cat
   }
 
 
-  jetRegistry_->registerEvent(cat, tagNumber, weight);
+  jetRegistry_->registerEvent(kin_cat, flav_cat, tagNumber, weight);
 
   return pass_event_sel;
 

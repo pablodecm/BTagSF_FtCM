@@ -30,8 +30,9 @@ taggers = {"combinedSecondaryVertexBJetTags": [0.244, 0.679, 0.898],
            "jetProbabilityBJetTags": [0.275, 0.545, 0.790], 
            "trackCountingHighPurBJetTags": [3.41]} 
 
+out_dir = "../output/kin_cat/" 
 
-jetCM = JetCountingManager(ptBins, etaBins, taggers, oldMuonSF = True)  
+jetCM = JetCountingManager(ptBins, etaBins, taggers, oldMuonSF = True, out_dir=out_dir)  
 
 jetCM.process(mc_samples, isData = False )
 jetCM.process(data_samples, isData = True)
