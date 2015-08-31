@@ -7,4 +7,5 @@
   <enum name="Norm"/>
   <class name="std::map<std::string,vector<double>>"/> 
   <class name="PtBinPdf"/>
+  <class name="PtBinDataPdf"/>
 </lcgdict>  

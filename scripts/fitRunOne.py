@@ -25,7 +25,8 @@ data_samples = [["../output/Data_2012ABCD_Winter13_ReReco.json"]]
 lumi = 19789.0
 min_n_tags = 0 
 max_n_tags = 4 
-useData = False
+useData = True
+useFractions = True
 
 tagger = args.tagger
 wp = args.workpoint
@@ -62,7 +63,12 @@ else:
     h_kin = m.get_mc_kin_hist()
 
 nll_ftcm = simulpdf.createNLL(h_ftcm, RooFit.Extended(), RooFit.NumCPU(6))
-nll_kin = m.sim_kin_pdf_.createNLL(h_kin, RooFit.Extended(), RooFit.NumCPU(4))
+
+if useFractions is True:
+    nll_kin = m.sim_kin_data_pdf_.createNLL(h_kin, RooFit.Extended(), RooFit.NumCPU(4))
+else:    
+    nll_kin = m.sim_kin_pdf_.createNLL(h_kin, RooFit.Extended(), RooFit.NumCPU(4))
+
 nll = RooAddition("nll","nll",RooArgList(nll_ftcm,nll_kin))
 minuit = RooMinuit(nll)
 fit_result = minuit.fit("r")

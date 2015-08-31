@@ -17,6 +17,7 @@
 #include "../interface/Component.h"
 #include "../interface/ModelPdf.h"
 #include "../interface/PtBinPdf.h"
+#include "../interface/PtBinDataPdf.h"
 
 class Model {
   public:
@@ -42,11 +43,14 @@ class Model {
 
     RooArgList pdf_norms_;
     RooArgList kin_pdf_norms_;
+    RooArgList kin_data_pdf_norms_;
     RooArgList ext_pdfs_;
     RooArgList ext_kin_pdfs_;
+    RooArgList ext_kin_data_pdfs_;
     RooUniform uni_;
     RooSimultaneous sim_pdf_;
     RooSimultaneous sim_kin_pdf_;
+    RooSimultaneous sim_kin_data_pdf_;
 
     Model(double lumi) : 
        mul_tag_("mul_tag", "Event Tag Multiplicity"),
@@ -60,11 +64,14 @@ class Model {
        l_jet_tag_effs_("l_jet_tag_effs"),
        pdf_norms_("pdf_norms"),
        kin_pdf_norms_("kin_pdf_norms"),
+       kin_data_pdf_norms_("kin_data_pdf_norms"),
        ext_pdfs_("ext_pdfs"),
        ext_kin_pdfs_("ext_kin_pdfs"),
+       ext_kin_data_pdfs_("ext_kin_data_pdfs"),
        uni_("uni","uniform",RooArgSet()),
        sim_pdf_("sim_pdf","sim_pdf",mul_tag_),
-       sim_kin_pdf_("sim_kin_pdf","sim_kin_pdf",kin_cat_)  {}
+       sim_kin_pdf_("sim_kin_pdf","sim_kin_pdf",kin_cat_),
+       sim_kin_data_pdf_("sim_kin_data_pdf","sim_kin_data_pdf",kin_cat_) {}
     ~Model() {}
 
     void add_mc_component(std::string filename, double nEventGen,
@@ -82,6 +89,7 @@ class Model {
 
     std::vector<double> get_data_tag_multiplicity() const;
     std::vector<double> get_data_kin_categories() const;
+    std::vector<double> get_data_pretag_kin_counts() const;
 
     std::vector<double> get_mc_tag_multiplicity() const;
     std::vector<double> get_mc_kin_categories() const;
@@ -90,6 +98,7 @@ class Model {
     ModelPdf * get_n_tag_pdf_ptr(unsigned n_tag);
 
     PtBinPdf * get_pt_bin_pdf_ptr(unsigned n_bin);
+    PtBinDataPdf * get_pt_bin_data_pdf_ptr(unsigned n_bin);
 
     RooDataHist get_data_hist(int min_n_tag = 0, int max_n_tag = 4);
     RooDataHist get_mc_hist(int min_n_tag = 0, int max_n_tag = 4);

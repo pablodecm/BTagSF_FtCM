@@ -83,11 +83,6 @@ void Model::add_mc_component(std::string filename, double nEventGen,
                          mean_l_jet_mul.at(i_c)));
   }
 
-  std::cout << "Component added" << std::endl;
-
-
-   
-
 }
 
 void Model::add_data_component(std::string filename) {
@@ -139,20 +134,26 @@ void Model::set_pdfs(int min_n_tag, int max_n_tag) {
     }
   }
 
-  // set kinematic bin pdf
+  // set kinematic bin  pdfs
   for (std::size_t n_b=0; n_b<mean_b_jet_muls_.size(); n_b++) {
+    // kinematic categories
+    std::string kin_bin_cat  = std::to_string(n_b) + "_kin_bin";
+    kin_cat_.defineType(kin_bin_cat.c_str());
+    // kin pdf (based on MC counts)
     kin_pdf_norms_.addOwned(*get_pt_bin_pdf_ptr(n_b));
     std::string n_ext_pdf = "ext_" + std::string(kin_pdf_norms_[n_b].GetName());
     RooExtendPdf * ext_pdf = new RooExtendPdf(n_ext_pdf.c_str(), n_ext_pdf.c_str(),
                                  uni_, dynamic_cast<RooAbsPdf &>(kin_pdf_norms_[n_b]));
     ext_kin_pdfs_.addOwned(*ext_pdf);
-    std::string kin_bin_cat  = std::to_string(n_b) + "_kin_bin";
-    std::cout << kin_bin_cat << std::endl;
-    kin_cat_.defineType(kin_bin_cat.c_str());
     sim_kin_pdf_.addPdf(dynamic_cast<RooAbsPdf &>(ext_kin_pdfs_[n_b]), kin_bin_cat.c_str());
+    // also for data based pdf
+    kin_data_pdf_norms_.addOwned(*get_pt_bin_data_pdf_ptr(n_b));
+    std::string n_ext_data_pdf = "ext_" + std::string(kin_data_pdf_norms_[n_b].GetName());
+    RooExtendPdf * ext_data_pdf = new RooExtendPdf(n_ext_data_pdf.c_str(), n_ext_data_pdf.c_str(),
+                                                   uni_, dynamic_cast<RooAbsPdf &>(kin_data_pdf_norms_[n_b]));
+    ext_kin_data_pdfs_.addOwned(*ext_data_pdf);
+    sim_kin_data_pdf_.addPdf(dynamic_cast<RooAbsPdf &>(ext_kin_data_pdfs_[n_b]), kin_bin_cat.c_str());
   }
-
-
 }
 
 std::vector<double> Model::get_mc_tag_effs() const {
@@ -288,6 +289,22 @@ std::vector<double> Model::get_data_kin_categories() const {
   return kin_cat_counts;
 }
 
+std::vector<double> Model::get_data_pretag_kin_counts() const {
+
+  std::vector<double> kin_cat_counts = data_comps_.at(0).get_good_jets();
+  
+  for (std::size_t n_s = 1; n_s < data_comps_.size(); n_s++) {
+    std::vector<double> kin_cat_counts_add = data_comps_.at(n_s).get_good_jets();
+    for (std::size_t i_j = 0; i_j < kin_cat_counts.size(); i_j++) {
+     kin_cat_counts.at(i_j) += kin_cat_counts_add.at(i_j);
+   }
+  }
+
+  return kin_cat_counts;
+}
+
+
+
 std::vector<double> Model::get_mc_tag_multiplicity() const {
 
   std::vector<double> tag_multiplicity;
@@ -408,6 +425,23 @@ PtBinPdf * Model::get_pt_bin_pdf_ptr(unsigned n_bin) {
   return p_pdf;
 }
 
+PtBinDataPdf * Model::get_pt_bin_data_pdf_ptr(unsigned n_bin) {
+
+  // create pdf pointer
+  std::string pdf_name = "pt_bin_data_" + std::to_string(n_bin) + "_pdf";
+  double n_ev_data = get_data_pretag_kin_counts()[n_bin];
+  std::cout << "good jets in bin " << n_bin << " -> " << n_ev_data << std::endl;
+  PtBinDataPdf * p_pdf = new PtBinDataPdf(pdf_name.c_str(), pdf_name.c_str(),
+                                      n_bin, n_ev_data, lumi_, kappa_,
+                                      pretag_effs_, xsecs_, tag_effs_,
+                                      *mean_b_jet_muls_.at(n_bin),
+                                      *mean_c_jet_muls_.at(n_bin),
+                                      *mean_l_jet_muls_.at(n_bin),
+                                      dynamic_cast<RooAbsReal &>(c_jet_tag_effs_[n_bin]),
+                                      dynamic_cast<RooAbsReal &>(l_jet_tag_effs_[n_bin]));
+  p_pdf->set_norms(mc_norms_);
+  return p_pdf;
+}
 
 RooDataHist Model::get_data_hist(int min_n_tag, int max_n_tag) {
   std::vector<double> data_tag_mul = get_data_tag_multiplicity();

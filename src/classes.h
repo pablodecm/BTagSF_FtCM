@@ -15,6 +15,7 @@ namespace { struct dict_FtCM {
   ModelPdf dummy5;
   std::map<std::string,vector<double>> dummy6;
   PtBinPdf dummy7;
+  PtBinDataPdf dummy8;
 };
 }
 
