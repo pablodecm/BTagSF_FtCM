@@ -24,7 +24,9 @@ class JetRegistry {
     typedef std::vector<std::vector<std::vector<double>>> TagVector;
     typedef std::vector<std::vector<int>> TagNumber;
     typedef std::string KinematicCategory;
+    typedef std::vector<std::vector<std::string>> TagKinematicCategory;
     typedef std::vector<std::string> FlavourCategory;
+    typedef std::map<KinematicCategory, std::map<std::string,std::vector<double>>> CategoryCounts;
 
     // [unweighted_events, weighthed_events, sumw2]
     std::vector<double> nEventPass_ = {0.0, 0.0, 0.0};   
@@ -61,7 +63,8 @@ class JetRegistry {
     TagVector tag_x_jets_;
 
     // event counts for each event category pair <[x,l,c,b1,...,bn],[counts, sumw2]>
-    std::map<KinematicCategory, std::map<std::string,std::vector<double>>> cat_counts_;   
+    CategoryCounts cat_counts_;   
+    std::vector<std::vector<CategoryCounts>> tag_cat_counts_;   
 
     // constructor
     JetRegistry(const std::vector<std::string> & taggers,
@@ -80,12 +83,12 @@ class JetRegistry {
 
     // add a jet to all the histograms and returns the category of the jet
     std::string registerJet( const mut::Jet & jet,
-                     TagNumber & tagNumber,
+                     TagKinematicCategory & tag_kin_cat,
                      double eWeight = 1.);  
     // count event in the corresponding category (return true if created)
     bool registerEvent( const KinematicCategory & kin_cat,
                         const FlavourCategory & flav_cat,
-                        const TagNumber & tagNumber,
+                        const TagKinematicCategory & tag_kin_cat,
                         double weight = 1.);  
 
     void serialize(std::ostream & os);

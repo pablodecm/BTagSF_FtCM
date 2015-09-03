@@ -27,6 +27,7 @@ JetRegistry::JetRegistry(const std::vector<std::string> & taggers,
     tag_x_jets_.emplace_back();
     tagMultiplicity_.emplace_back();
     tag_cat_jets_.emplace_back();
+    tag_cat_counts_.emplace_back();
     for (std::size_t i=0; i < workPoints_[t].size(); i++) {
       std::string tag_jets_name = "tag_jets_"+taggers_[t]+"_"+std::to_string(i);
       tag_jets_.back().emplace_back(tag_jets_name.c_str(),"",
@@ -40,6 +41,7 @@ JetRegistry::JetRegistry(const std::vector<std::string> & taggers,
       tagMultiplicity_.back().emplace_back(10, 0.0);
       // init tag cat jet counts
       tag_cat_jets_.back().emplace_back(3+(ptBins_.size()-1)*(etaBins_.size()-1), 0.0);
+      tag_cat_counts_.back().emplace_back();
     }
   }
 }
@@ -49,7 +51,7 @@ void JetRegistry::registerJetMultiplicity(const int & nGoodJets, double eWeight)
 } 
 
 std::string JetRegistry::registerJet( const mut::Jet & jet,
-                              TagNumber & tagNumber,
+                              TagKinematicCategory & tag_kin_cat,
                               double eWeight) {
 
   // get TH2D global bins and axis bins (1..)
@@ -94,18 +96,18 @@ std::string JetRegistry::registerJet( const mut::Jet & jet,
       // check if tagged
       bool isTagged = jet.getDiscriminator(taggers_[t]) > workPoints_[t][i];
       if (isTagged) {
-        tagNumber[t][i]++;
-        tag_jets_[t][i].Fill( jet.pt(), jet.eta());
-        tag_cat_jets_[t][i][glob_index] += eWeight;
+        tag_kin_cat.at(t).at(i).at(cat_index)++;
+//tag_jets_[t][i].Fill( jet.pt(), jet.eta());
+        tag_cat_jets_.at(t).at(i).at(glob_index) += eWeight;
         if ( jet_flavour == 5) {
-          tag_b_jets_[t][i][cat_index] += eWeight;
+          tag_b_jets_.at(t).at(i).at(cat_index) += eWeight;
         } else  if ( jet_flavour == 4) {
-          tag_c_jets_[t][i][cat_index] += eWeight;
+          tag_c_jets_.at(t).at(i).at(cat_index) += eWeight;
         } else if ( jet_flavour == 1 || jet_flavour == 2 ||
                     jet_flavour == 3 || jet_flavour == 21 ) {
-          tag_l_jets_[t][i][cat_index] += eWeight;
+          tag_l_jets_.at(t).at(i).at(cat_index) += eWeight;
         } else { //unknown jets
-          tag_x_jets_[t][i][cat_index] += eWeight;
+          tag_x_jets_.at(t).at(i).at(cat_index) += eWeight;
         }
       }
     }
@@ -116,14 +118,14 @@ std::string JetRegistry::registerJet( const mut::Jet & jet,
 
 bool JetRegistry::registerEvent( const KinematicCategory & kin_cat,
                                  const FlavourCategory & flav_cat,
-                                 const TagNumber & tagNumber,
+                                 const TagKinematicCategory & tag_kin_cat,
                                  double weight)
 {
   nEventPass_[0]++;
   nEventPass_[1]+=weight;
   nEventPass_[2]+=weight*weight;
 
-  // concatenate flavout category (so it can be a JSON key)º
+  // concatenate flavour category (so it can be a JSON key)
   std::string j_flav_cat = "";
   for ( const auto & flav_count : flav_cat) j_flav_cat += flav_count;
 
@@ -142,9 +144,26 @@ bool JetRegistry::registerEvent( const KinematicCategory & kin_cat,
     cat_counts_[kin_cat][j_flav_cat] = {weight,weight*weight}; 
   }
 
-  for (std::size_t t = 0; t < taggers_.size(); t++) {
+    for (std::size_t t = 0; t < taggers_.size(); t++) {
     for (std::size_t i = 0; i < workPoints_[t].size(); i++) {
-      tagMultiplicity_[t][i][tagNumber[t][i]] += weight;
+      int n_tags = 0;
+      for (const auto & ch : tag_kin_cat.at(t).at(i)) n_tags+= int(ch-'0'); 
+      tagMultiplicity_.at(t).at(i).at(n_tags) += weight;
+
+      // update tag category map
+      CategoryCounts & one_tag_cat_counts = tag_cat_counts_.at(t).at(i); 
+      const std::string & one_tag_kin_cat = tag_kin_cat.at(t).at(i); 
+      if (one_tag_cat_counts.count(kin_cat) > 0) {
+        if (one_tag_cat_counts[kin_cat].count(one_tag_kin_cat) > 0) {
+          one_tag_cat_counts[kin_cat][one_tag_kin_cat][0] += weight;
+          one_tag_cat_counts[kin_cat][one_tag_kin_cat][1] += weight*weight;
+        } else {
+          one_tag_cat_counts[kin_cat][one_tag_kin_cat] = {weight,weight*weight};
+        }
+      } else {
+        one_tag_cat_counts[kin_cat] = std::map<std::string,std::vector<double>>();
+        one_tag_cat_counts[kin_cat][one_tag_kin_cat] = {weight,weight*weight}; 
+      }
     }
   }
 
@@ -186,6 +205,13 @@ void JetRegistry::serialize( std::ostream & os) {
   j["tagMultiplicity"] = tagMultiplicity_;
   j["jetMultiplicity"] = jetMultiplicity_;
   j["cat_counts"] = cat_counts_;
+
+  for (std::size_t t = 0; t < taggers_.size(); t++) {
+    for (std::size_t i = 0; i < workPoints_[t].size(); i++) {
+      CategoryCounts tag_counts = tag_cat_counts_.at(t).at(i);
+      j["tag_cat_counts:"+taggers_[t]+":"+std::to_string(workPoints_[t][i])] = tag_counts; 
+    }
+  }
 
   os << std::setw(4) << j << std::endl;
 
