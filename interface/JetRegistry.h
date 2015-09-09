@@ -24,9 +24,9 @@ class JetRegistry {
     typedef std::vector<std::vector<std::vector<double>>> TagVector;
     typedef std::vector<std::vector<int>> TagNumber;
     typedef std::string KinematicCategory;
-    typedef std::vector<std::vector<std::string>> TagKinematicCategory;
+    typedef std::vector<std::vector<std::vector<std::string>>> TagKinematicCategory;
     typedef std::vector<std::string> FlavourCategory;
-    typedef std::map<KinematicCategory, std::map<std::string,std::vector<double>>> CategoryCounts;
+    typedef std::map<std::string, std::map<std::string,std::vector<double>>> CategoryCounts;
 
     // [unweighted_events, weighthed_events, sumw2]
     std::vector<double> nEventPass_ = {0.0, 0.0, 0.0};   
@@ -62,9 +62,12 @@ class JetRegistry {
     TagVector tag_l_jets_;
     TagVector tag_x_jets_;
 
-    // event counts for each event category pair <[x,l,c,b1,...,bn],[counts, sumw2]>
+    // flavour counts for each pretag category (first key)
     CategoryCounts cat_counts_;   
+    // counts for each pretag and tag category 
     std::vector<std::vector<CategoryCounts>> tag_cat_counts_;   
+    // counts for good jets in each pretag-tag
+    std::vector<std::vector<CategoryCounts>> pretag_jet_counts_;   
 
     // constructor
     JetRegistry(const std::vector<std::string> & taggers,

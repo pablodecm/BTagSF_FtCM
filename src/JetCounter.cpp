@@ -82,7 +82,7 @@ Bool_t JetCounter::Process(Long64_t entry)
   for (std::size_t t = 0; t < taggers_.size(); t++) {
       tag_kin_cat.emplace_back();
     for (std::size_t i = 0; i < workPoints_[t].size(); i++) {
-      tag_kin_cat.back().emplace_back((ptBins_.size()-1)*(etaBins_.size()-1),'0');
+      tag_kin_cat.back().emplace_back((ptBins_.size()-1)*(etaBins_.size()-1),"0000");
     }
   }
 

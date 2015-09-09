@@ -34,5 +34,22 @@ namespace FtCM {
     return smset;
   }
 
+
+  std::vector<std::vector<std::string>> cart_product( const std::vector<std::vector<std::string>> & v) {
+    std::vector<std::vector<std::string>> s = {{}};
+    for (auto& u : v) {
+        std::vector<std::vector<std::string>> r;
+        for (auto& x : s) {
+            for (auto y : u) {
+                r.push_back(x);
+                r.back().push_back(y);
+            }
+        }
+        s.swap(r);
+    }
+    return s;
+  }
+
+
 }
   
