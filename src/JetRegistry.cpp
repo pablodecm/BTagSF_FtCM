@@ -1,5 +1,6 @@
 
 #include "../interface/JetRegistry.h"
+#include "mut_framework/mut_utils/interface/prettyprint.hpp"
 
 JetRegistry::JetRegistry(const std::vector<std::string> & taggers,
                          const std::vector<std::vector<double>> & workPoints,
@@ -180,7 +181,7 @@ bool JetRegistry::registerEvent( const KinematicCategory & kin_cat,
         }
       }
       std::string s_tag_kin_cat((ptBins_.size()-1)*(etaBins_.size()-1),'0');
-      for (std::size_t n_cat = 0; n_cat < tag_kin_cat.size(); n_cat++) {
+      for (std::size_t n_cat = 0; n_cat < tag_kin_cat.at(t).at(i).size(); n_cat++) {
         int sum = 0;
         for ( const auto & cat : tag_kin_cat.at(t).at(i).at(n_cat)) {
           sum += int(cat-'0');

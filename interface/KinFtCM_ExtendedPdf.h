@@ -43,7 +43,7 @@ public:
   void set_norms(std::vector<Norm> norms) { norms_ =norms;}
   void set_category(const std::string & pretag_cat, const std::string & tag_cat)
   { pretag_cat_ = pretag_cat;
-    tag_cat_ = tag_cat_; }
+    tag_cat_ = tag_cat; }
   virtual ExtendMode extendMode() const { return CanBeExtended ; }
   virtual Double_t expectedEvents(const RooArgSet* nset) const;
   virtual Double_t expectedEvents(const RooArgSet& nset) const { return expectedEvents(&nset); };

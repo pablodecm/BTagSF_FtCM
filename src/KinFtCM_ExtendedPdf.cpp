@@ -1,7 +1,7 @@
 
 #include "Riostream.h" 
 #include "../interface/KinFtCM_ExtendedPdf.h" 
-
+#include "mut_framework/mut_utils/interface/prettyprint.hpp"
 
 ClassImp(KinFtCM::ExtendedPdf) 
 
@@ -82,7 +82,6 @@ Double_t ExtendedPdf::expectedEvents(const RooArgSet* nset) const {
      pretag_effs.at(s_i) = dynamic_cast<RooAbsReal&>(pretag_effs_[s_i]).getVal();
   }
 
-
   for (std::size_t c_i=0; c_i < cat_.size(); c_i++) { // for each kinematic category
     for (std::size_t s_i=0; s_i < cat_.at(c_i).size(); s_i++) { // for each sample
       const std::string & cat = cat_.at(c_i).at(s_i);
@@ -91,9 +90,9 @@ Double_t ExtendedPdf::expectedEvents(const RooArgSet* nset) const {
       std::vector<std::string> pre_cats;
       std::vector<std::vector<std::string>> sub_cats;
       for (std::size_t j_i=0; j_i < n_cat; j_i++) { // for each jet kin bin
-        pre_cats.emplace_back(cat.substr(j_i, 3));
+        pre_cats.emplace_back(cat.substr(3*j_i, 3));
         sub_cats.emplace_back();  
-        for (const auto & sub_cat : FtCM::submultiset(pre_cats.back(), tag_cat_.at(j_i))) {
+        for (const auto & sub_cat : FtCM::submultiset(pre_cats.back(), tag_cat_.at(j_i) - '0')) {
           sub_cats.back().emplace_back(sub_cat);
         }
       }
@@ -104,7 +103,7 @@ Double_t ExtendedPdf::expectedEvents(const RooArgSet* nset) const {
       for ( const auto & pos_cat : pos_cats) { // for each posibility
         double pos_prob = 1;
         for ( std::size_t j_i = 0; j_i < pos_cat.size(); j_i++) { // for each jet kin 
-          for ( std::size_t j_t = 0; j_i < 3; j_t++) {
+          for ( std::size_t j_t = 0; j_t < 3; j_t++) {
             int i = pre_cats.at(j_i).at(j_t)-'0'; 
             int i_p = pos_cat.at(j_i).at(j_t)-'0';
             pos_prob *= TMath::Binomial(i, i_p)*std::pow(jet_tag_effs.at(j_i).at(j_t),i_p)*

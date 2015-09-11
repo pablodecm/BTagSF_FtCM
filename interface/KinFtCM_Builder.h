@@ -69,6 +69,10 @@ namespace KinFtCM {
     void add_category( const std::string & pretag_cat, const std::string & tag_cat) 
       { cat_set_.insert(std::make_pair(pretag_cat, tag_cat)); }
 
+    std::vector<double> get_mc_jet_tag_effs( const std::vector<int> & type) const;
+    void set_mc_jet_tag_effs();
+    void add_all_categories();
+
     ExtendedPdf * get_extended_pdf_ptr(const std::string & pretag_cat, const std::string & tag_cat);
     
 
