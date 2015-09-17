@@ -122,9 +122,9 @@ std::vector<double> Component::get_tag_jets(
 }
 
 
-double Component::get_counts( const std::string & pretag_cat,
+double Component::get_tag_counts( const std::string & pretag_cat,
     const std::string & tag_cat) const {
-  double counts = 0;
+  double counts = 0.0;
   if ( tag_cat_counts_.count(pretag_cat) > 0) {
   const std::map<std::string,std::vector<double>> & sub_map = tag_cat_counts_.at(pretag_cat);
   for (const auto & kv : sub_map) {

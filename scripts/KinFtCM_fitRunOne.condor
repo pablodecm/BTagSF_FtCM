@@ -1,0 +1,21 @@
+ID = $(Cluster).$(Process) 
+
+executable =KinFtCM_fitRunOne.sh
+output  = $(executable).$(ID).out
+error   = $(executable).$(ID).err
+log     = $(executable).$(Cluster).log
+
+arguments = combinedSecondaryVertexBJetTags 0.244 
+queue
+arguments = combinedSecondaryVertexBJetTags 0.679
+queue
+arguments = combinedSecondaryVertexBJetTags 0.898
+queue
+arguments = jetProbabilityBJetTags 0.275
+queue
+arguments = jetProbabilityBJetTags 0.545
+queue
+arguments = jetProbabilityBJetTags 0.790
+queue
+arguments = trackCountingHighPurBJetTags 3.41
+queue

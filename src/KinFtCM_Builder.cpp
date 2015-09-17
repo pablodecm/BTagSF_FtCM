@@ -48,6 +48,15 @@ void Builder::add_data_component(std::string filename) {
   data_comps_.emplace_back(filename, tagger_,workPoint_, 1.0, 1.0, DATA);
 }
 
+void Builder::add_category( const std::string & pretag_cat, const std::string & tag_cat) { 
+  cat_set_.insert(std::make_pair(pretag_cat, tag_cat)); 
+  std::string cat_name = pretag_cat + ":" + tag_cat;
+  kin_cat_.defineType(cat_name.c_str());
+  kin_bin_pdfs_.addOwned(*get_extended_pdf_ptr(pretag_cat, tag_cat)); 
+  sim_kin_pdf_.addPdf(dynamic_cast<RooAbsPdf &>(kin_bin_pdfs_[kin_bin_pdfs_.getSize()-1]),
+      cat_name.c_str());
+}
+
 std::vector<double> Builder::get_mc_jet_tag_effs(const std::vector<int> & type) const {
 
   std::size_t n_cat = mc_comps_.back().get_n_cat();
@@ -96,13 +105,47 @@ void Builder::set_mc_jet_tag_effs() {
   }
 }
 
-void Builder::add_all_categories() {
+void Builder::add_all_categories( double min_counts_pretag,
+                                  double min_counts_tag) {
 
   std::set<std::pair<std::string,std::string>> unique_cats;
   for (std::size_t n_s = 0; n_s < data_comps_.size(); n_s++) { 
-    for ( const auto & pretag_cat : data_comps_.at(n_s).pretag_jet_counts_) {
+    for ( const auto & pretag_cat : data_comps_.at(n_s).tag_cat_counts_) {
+      double counts_pretag = 0.0;
       for ( const auto & tag_cat : pretag_cat.second) {
-        unique_cats.insert(std::make_pair(pretag_cat.first, tag_cat.first));
+        counts_pretag += tag_cat.second[0];
+      }
+      if ( counts_pretag > min_counts_pretag) {
+     for ( const auto & tag_cat : pretag_cat.second) {
+       if ( tag_cat.second[0] > min_counts_tag) {
+       std::string short_cat(data_comps_.at(n_s).get_n_cat(),'0');
+       for (std::size_t b = 0; b < data_comps_.at(n_s).get_n_cat(); b++) {
+         int jet_sum = 0;
+         for (std::size_t t = 0; t < 4; t++) {
+           jet_sum += int(tag_cat.first.at(4*b+t)-'0');
+         }
+         short_cat.at(b) = char(jet_sum) + '0';
+       }     
+       unique_cats.insert(std::make_pair(pretag_cat.first, short_cat));
+      }
+     }
+    }
+  }
+  }
+
+  for ( const auto & cat : unique_cats) {
+    add_category(cat.first, cat.second);
+  }
+  
+}
+
+void Builder::add_pretag_category( const std::string & pretag_cat) {
+
+  std::set<std::pair<std::string,std::string>> unique_cats;
+  for (std::size_t n_s = 0; n_s < data_comps_.size(); n_s++) { 
+    if ( data_comps_.at(n_s).pretag_jet_counts_.count(pretag_cat) > 0) {
+      for ( const auto & tag_cat : data_comps_.at(n_s).pretag_jet_counts_.at(pretag_cat)) {
+        unique_cats.insert(std::make_pair(pretag_cat, tag_cat.first));
       }
     }
   }
@@ -111,8 +154,6 @@ void Builder::add_all_categories() {
     add_category(cat.first, cat.second);
   }
  
-
-  
 }
 
 
@@ -164,6 +205,29 @@ ExtendedPdf * Builder::get_extended_pdf_ptr(const std::string & pretag_cat,
   return ext_pdf;
   
 }
+
+double Builder::get_data_tag_counts(const std::string & pretag_cat, const std::string & tag_cat) {
+
+  double counts = 0.0;
+  for (const auto & data_comp : data_comps_) {
+    counts += data_comp.get_tag_counts(pretag_cat, tag_cat);
+  }
+  return counts;
+}
+
+RooDataHist Builder::get_data_hist() {
+  RooDataHist data_hist("data_hist","data_hist",RooArgSet(kin_cat_));
+  for (const auto & cat : cat_set_) {
+    std::string cat_name = cat.first + ":" + cat.second;
+    kin_cat_.setLabel(cat_name.c_str());
+    data_hist.add(RooArgSet(kin_cat_),
+                  get_data_tag_counts(cat.first, cat.second));
+
+  }  
+  return data_hist;
+}
+
+
 }
 
 

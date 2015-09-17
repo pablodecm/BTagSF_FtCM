@@ -66,18 +66,18 @@ namespace KinFtCM {
                           double xSec, Norm n); 
     void add_data_component(std::string filename); 
 
-    void add_category( const std::string & pretag_cat, const std::string & tag_cat) 
-      { cat_set_.insert(std::make_pair(pretag_cat, tag_cat)); }
-
+    void add_category( const std::string & pretag_cat, const std::string & tag_cat);
+      
     std::vector<double> get_mc_jet_tag_effs( const std::vector<int> & type) const;
     void set_mc_jet_tag_effs();
-    void add_all_categories();
+    void add_all_categories(double min_counts_pretag = -1.0,
+                            double min_counts_tag = -1.0 );
+    void add_pretag_category(const std::string & pretag_cat);
 
     ExtendedPdf * get_extended_pdf_ptr(const std::string & pretag_cat, const std::string & tag_cat);
+    double get_data_tag_counts(const std::string & pretag_cat, const std::string & tag_cat);
     
-
-    //RooDataHist get_data_kin_hist();
-    //RooDataHist get_mc_kin_hist();
+    RooDataHist get_data_hist();
     
   };
 }
