@@ -57,6 +57,14 @@ void Builder::add_category( const std::string & pretag_cat, const std::string & 
       cat_name.c_str());
 }
 
+std::vector<std::string> Builder::get_mcs_names() const {
+  std::vector<std::string> mc_names;
+  for (const auto & mc_comp : mc_comps_) {
+    mc_names.emplace_back(mc_comp.get_name());
+  }
+  return mc_names;
+}
+
 std::vector<double> Builder::get_mc_jet_tag_effs(const std::vector<int> & type) const {
 
   std::size_t n_cat = mc_comps_.back().get_n_cat();
@@ -105,38 +113,78 @@ void Builder::set_mc_jet_tag_effs() {
   }
 }
 
-void Builder::add_all_categories( double min_counts_pretag,
+std::vector<std::string> Builder::add_all_categories( double min_counts_pretag,
                                   double min_counts_tag) {
 
   std::set<std::pair<std::string,std::string>> unique_cats;
+  std::set<std::pair<std::string,std::string>> selected_cats;
+
+  std::vector<std::pair<std::string, double>> pretag_pairs;
+
+  // get all unique categories in all data files
   for (std::size_t n_s = 0; n_s < data_comps_.size(); n_s++) { 
     for ( const auto & pretag_cat : data_comps_.at(n_s).tag_cat_counts_) {
-      double counts_pretag = 0.0;
       for ( const auto & tag_cat : pretag_cat.second) {
-        counts_pretag += tag_cat.second[0];
+        unique_cats.insert(std::make_pair(pretag_cat.first, tag_cat.first));
       }
-      if ( counts_pretag > min_counts_pretag) {
-     for ( const auto & tag_cat : pretag_cat.second) {
-       if ( tag_cat.second[0] > min_counts_tag) {
-       std::string short_cat(data_comps_.at(n_s).get_n_cat(),'0');
-       for (std::size_t b = 0; b < data_comps_.at(n_s).get_n_cat(); b++) {
-         int jet_sum = 0;
-         for (std::size_t t = 0; t < 4; t++) {
-           jet_sum += int(tag_cat.first.at(4*b+t)-'0');
-         }
-         short_cat.at(b) = char(jet_sum) + '0';
-       }     
-       unique_cats.insert(std::make_pair(pretag_cat.first, short_cat));
-      }
-     }
     }
   }
+
+  
+  // for each unique category pair check if verify conditions
+  for ( const auto & cat : unique_cats) {
+    double counts_pretag = 0.0;
+    double counts_tag = 0.0;
+    for (std::size_t n_s = 0; n_s < data_comps_.size(); n_s++) { 
+      if (data_comps_.at(n_s).tag_cat_counts_.count(cat.first) > 0) {
+        const auto & pretag_map = data_comps_.at(n_s).tag_cat_counts_.at(cat.first);
+        for ( const auto & tag_cat : pretag_map) {
+          counts_pretag += tag_cat.second.at(0);
+        }
+        if (pretag_map.count(cat.second) > 0) {
+          counts_tag += pretag_map.at(cat.second).at(0);
+        }
+      }
+    }
+
+    if ( counts_pretag > min_counts_pretag) {
+      if (std::none_of(pretag_pairs.cbegin(), pretag_pairs.cend(),
+          [&](const std::pair<std::string,double> & element) { return (element.first == cat.first); }))
+      {
+        pretag_pairs.emplace_back(cat.first, counts_pretag);
+      }
+      if ( counts_tag > min_counts_tag) {
+        // translate tag cat name to short format
+        std::string short_cat(data_comps_.at(0).get_n_cat(),'0');
+        for (std::size_t b = 0; b < data_comps_.at(0).get_n_cat(); b++) {
+          int jet_sum = 0;
+          for (std::size_t t = 0; t < 4; t++) {
+            jet_sum += int(cat.second.at(4*b+t)-'0');
+          }
+          short_cat.at(b) = char(jet_sum) + '0';
+        }     
+        selected_cats.insert(std::make_pair(cat.first, short_cat));
+      }
+    }
   }
 
-  for ( const auto & cat : unique_cats) {
+  // add all selected category pair
+  for ( const auto & cat : selected_cats) {
     add_category(cat.first, cat.second);
   }
+
+  std::sort(pretag_pairs.begin(), pretag_pairs.end(), 
+      [](const std::pair<std::string,double> & lhs, const std::pair<std::string,double> & rhs ) 
+      {
+        return lhs.second > rhs.second;
+      });
+
+  std::vector<std::string> pretag_names;
+  for ( const auto & pretag_pair : pretag_pairs) {
+    pretag_names.emplace_back(pretag_pair.first);
+  }
   
+  return pretag_names;
 }
 
 void Builder::add_pretag_category( const std::string & pretag_cat) {
@@ -206,7 +254,7 @@ ExtendedPdf * Builder::get_extended_pdf_ptr(const std::string & pretag_cat,
   
 }
 
-double Builder::get_data_tag_counts(const std::string & pretag_cat, const std::string & tag_cat) {
+double Builder::get_data_tag_counts(const std::string & pretag_cat, const std::string & tag_cat) const {
 
   double counts = 0.0;
   for (const auto & data_comp : data_comps_) {
@@ -228,6 +276,34 @@ RooDataHist Builder::get_data_hist() {
 }
 
 
+double Builder::get_data_pretag_counts(const std::string & pretag_cat) const {
+
+  double counts = 0.0;
+  for (const auto & data_comp : data_comps_) {
+    counts += data_comp.get_pretag_counts(pretag_cat);
+  }
+  return counts;
+}
+
+double Builder::get_expected_pretag_counts(const std::string & pretag_cat) const {
+  double counts = 0.0;
+  for (std::size_t n_s = 0; n_s < mc_comps_.size(); n_s++) {
+    double eff  = mc_comps_.at(n_s).get_pretag_counts(pretag_cat)/mc_comps_.at(n_s).nEventGen_;
+    double factor = lumi_.getVal()*dynamic_cast<RooAbsReal&>(xsecs_[n_s]).getVal();
+    counts += factor*eff;
+  }
+  return counts;
+}
+
+std::vector<double> Builder::get_mcs_pretag_counts(const std::string & pretag_cat) const {
+  std::vector<double> mcs_counts;
+  for (std::size_t n_s = 0; n_s < mc_comps_.size(); n_s++) {
+    double eff  = mc_comps_.at(n_s).get_pretag_counts(pretag_cat)/mc_comps_.at(n_s).nEventGen_;
+    double factor = lumi_.getVal()*dynamic_cast<RooAbsReal&>(xsecs_[n_s]).getVal();
+    mcs_counts.emplace_back(factor*eff);
+  }
+  return mcs_counts;
+}
 }
 
 

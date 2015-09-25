@@ -144,6 +144,18 @@ double Component::get_tag_counts( const std::string & pretag_cat,
   return counts;
 }
 
+double Component::get_pretag_counts( const std::string & pretag_cat) const {
+
+  double counts = 0.0;
+  if ( tag_cat_counts_.count(pretag_cat) > 0) {
+  const std::map<std::string,std::vector<double>> & sub_map = tag_cat_counts_.at(pretag_cat);
+    for (const auto & kv : sub_map) {
+      counts  += kv.second.at(0);
+    }
+  }
+  return counts;
+}
+
 std::map<std::string, std::vector<double>> Component::get_flav_frac(
     const std::string & pretag_cat,
     std::vector<std::vector<int>> cat_mapping ) const {

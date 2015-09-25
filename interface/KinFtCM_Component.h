@@ -63,6 +63,7 @@ namespace KinFtCM {
                                        const std::set<std::pair<std::string,std::string>> & cat_set ) const;
 
       double get_tag_counts( const std::string & pretag_cat, const std::string & tag_cat) const;
+      double get_pretag_counts( const std::string & pretag_cat) const;
 
       std::map<std::string, std::vector<double>> get_flav_frac(const std::string & pretag_cat,
           std::vector<std::vector<int>> cat_mapping= {{0}, {1}, {2,3}}) const; 

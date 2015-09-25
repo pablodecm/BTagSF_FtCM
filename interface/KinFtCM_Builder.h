@@ -67,15 +67,20 @@ namespace KinFtCM {
     void add_data_component(std::string filename); 
 
     void add_category( const std::string & pretag_cat, const std::string & tag_cat);
+
+    std::vector<std::string> get_mcs_names() const;
       
     std::vector<double> get_mc_jet_tag_effs( const std::vector<int> & type) const;
     void set_mc_jet_tag_effs();
-    void add_all_categories(double min_counts_pretag = -1.0,
-                            double min_counts_tag = -1.0 );
+    std::vector<std::string> add_all_categories(double min_counts_pretag = -1.0,
+                                                double min_counts_tag = -1.0 );
     void add_pretag_category(const std::string & pretag_cat);
 
     ExtendedPdf * get_extended_pdf_ptr(const std::string & pretag_cat, const std::string & tag_cat);
-    double get_data_tag_counts(const std::string & pretag_cat, const std::string & tag_cat);
+    double get_data_tag_counts(const std::string & pretag_cat, const std::string & tag_cat) const;
+    double get_data_pretag_counts(const std::string & pretag_cat) const;
+    double get_expected_pretag_counts(const std::string & pretag_cat) const;
+    std::vector<double> get_mcs_pretag_counts(const std::string & pretag_cat) const;
     
     RooDataHist get_data_hist();
     

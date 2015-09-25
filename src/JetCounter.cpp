@@ -37,14 +37,20 @@ Bool_t JetCounter::Process(Long64_t entry)
   fReader.SetEntry(entry);
 
 
-  // basic event selection
+  // basic event selection (only mu+jets channel)
   std::vector<int> good_jets_index;
+  if (muons->size() != 1) return false; 
+  // check good lumi filter
+  if (eventInfo->hasFilter("goodLumi")) {
+    if (!eventInfo->getFilter("goodLumi")) {
+      return false; // it has but no passes filter
+    }
+  }
   bool pass_event_sel = false;
   if ( pfmet->Et() >= 20.0 &&
        muons->at(0).pt() > 35.0 &&
        std::abs(muons->at(0).eta()) < 2.1 &&
-       muons->at(0).getLeptonIso("relIso") < 0.125 &&
-       eventInfo->getFilter("goodLumi") ) 
+       muons->at(0).getLeptonIso("relIso") < 0.125 ) 
   {
     // check number of jets in pt/eta region 
     for ( std::size_t j = 0; j < pfjets->size(); j++) {

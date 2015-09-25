@@ -10,7 +10,7 @@ JetRegistry::JetRegistry(const std::vector<std::string> & taggers,
                          workPoints_(workPoints),
                          ptBins_(ptBins),
                          etaBins_(etaBins),
-                         jetMultiplicity_(10, 0.0),
+                         jetMultiplicity_(15, 0.0),
                          good_cat_jets_(3+(ptBins_.size()-1)*(etaBins_.size()-1), 0.0),
                          good_jets_("good_jets","", ptBins.size()-1, ptBins.data(), etaBins.size()-1, etaBins.data()),
                          good_b_jets_((ptBins_.size()-1)*(etaBins_.size()-1), 0.0),
@@ -50,7 +50,7 @@ JetRegistry::JetRegistry(const std::vector<std::string> & taggers,
 }
 
 void JetRegistry::registerJetMultiplicity(const int & nGoodJets, double eWeight) {
-  jetMultiplicity_[nGoodJets] += eWeight;
+  jetMultiplicity_.at(nGoodJets) += eWeight;
 } 
 
 std::string JetRegistry::registerJet( const mut::Jet & jet,
