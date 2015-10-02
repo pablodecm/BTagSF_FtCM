@@ -46,6 +46,9 @@ namespace KinFtCM {
 
     std::set<std::pair<std::string,std::string>> cat_set_;
 
+    // configuration options
+    bool zeroNegativeFracs = false;
+
 
     Builder(std::string tagger, double workPoint, double lumi) : 
        tagger_(tagger),
@@ -80,7 +83,9 @@ namespace KinFtCM {
     double get_data_tag_counts(const std::string & pretag_cat, const std::string & tag_cat) const;
     double get_data_pretag_counts(const std::string & pretag_cat) const;
     double get_expected_pretag_counts(const std::string & pretag_cat) const;
+    double get_expected_tag_counts(const std::string & pretag_cat, const std::string & tag_cat) const;
     std::vector<double> get_mcs_pretag_counts(const std::string & pretag_cat) const;
+    std::vector<double> get_mcs_tag_counts(const std::string & pretag_cat, const std::string & tag_cat) const;
     
     RooDataHist get_data_hist();
     

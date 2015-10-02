@@ -60,7 +60,8 @@ public :
 
    // event weights to take into account (set defaults)
    std::vector<std::string> eWeights_ = 
-    { "weight_PU_nom" };
+    { "weight_PU_nom",
+      "MCweight" };
 
    // class to manage and save results 
    JetRegistry * jetRegistry_;

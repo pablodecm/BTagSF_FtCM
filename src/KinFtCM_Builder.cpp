@@ -239,7 +239,11 @@ ExtendedPdf * Builder::get_extended_pdf_ptr(const std::string & pretag_cat,
     for (std::size_t n_s = 0; n_s < flav_fracs.size(); n_s++) { 
       cat.back().emplace_back(unique_cat);
       if (flav_fracs.at(n_s).count(unique_cat) > 0) {
-        frac.back().emplace_back(flav_fracs.at(n_s).at(unique_cat).at(0));
+        if (zeroNegativeFracs && (flav_fracs.at(n_s).at(unique_cat).at(0) < 0.0 )) {
+          frac.back().emplace_back(0.0);
+        } else {
+          frac.back().emplace_back(flav_fracs.at(n_s).at(unique_cat).at(0));
+        }
       } else {
         frac.back().emplace_back(0.0);
       } 
@@ -294,6 +298,21 @@ double Builder::get_expected_pretag_counts(const std::string & pretag_cat) const
   }
   return counts;
 }
+double Builder::get_expected_tag_counts(const std::string & pretag_cat, const std::string & tag_cat) const {
+
+  std::string pdf_name = "ExtendedPdf-"+pretag_cat+":"+tag_cat;
+  int pos = kin_bin_pdfs_.index(pdf_name.c_str());
+
+
+  if (pos > -1) { // found in RooArgList
+    ExtendedPdf & ext_pdf = dynamic_cast<ExtendedPdf &>(kin_bin_pdfs_[pos]);
+    return ext_pdf.expectedEvents(RooArgSet());  
+  } 
+
+  std::cout << " Warning - Pretag category not found in RooArgList " << std::endl;
+
+  return -1.0;
+}
 
 std::vector<double> Builder::get_mcs_pretag_counts(const std::string & pretag_cat) const {
   std::vector<double> mcs_counts;
@@ -304,6 +323,23 @@ std::vector<double> Builder::get_mcs_pretag_counts(const std::string & pretag_ca
   }
   return mcs_counts;
 }
+
+std::vector<double> Builder::get_mcs_tag_counts(const std::string & pretag_cat, const std::string & tag_cat) const {
+
+  std::string pdf_name = "ExtendedPdf-"+pretag_cat+":"+tag_cat;
+  int pos = kin_bin_pdfs_.index(pdf_name.c_str());
+
+  if (pos > -1) { // found in RooArgList
+    ExtendedPdf & ext_pdf = dynamic_cast<ExtendedPdf &>(kin_bin_pdfs_[pos]);
+    return ext_pdf.get_mcs_tag_counts();  
+  } 
+
+  std::cout << " Warning - Pretag category not found in RooArgList " << std::endl;
+
+  return {};
+}
+
+
 }
 
 

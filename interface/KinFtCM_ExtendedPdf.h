@@ -47,6 +47,7 @@ public:
   virtual ExtendMode extendMode() const { return CanBeExtended ; }
   virtual Double_t expectedEvents(const RooArgSet* nset) const;
   virtual Double_t expectedEvents(const RooArgSet& nset) const { return expectedEvents(&nset); };
+  std::vector<double> get_mcs_tag_counts() const;
 
 protected:
 
