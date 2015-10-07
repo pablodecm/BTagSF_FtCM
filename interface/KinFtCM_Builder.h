@@ -75,9 +75,10 @@ namespace KinFtCM {
       
     std::vector<double> get_mc_jet_tag_effs( const std::vector<int> & type) const;
     void set_mc_jet_tag_effs();
-    std::vector<std::string> add_all_categories(double min_counts_pretag = -1.0,
+    std::vector<std::string> add_all_categories(bool all_tag_cats = true, double min_counts_pretag = -1.0,
                                                 double min_counts_tag = -1.0 );
     void add_pretag_category(const std::string & pretag_cat);
+    std::vector<std::string> get_tag_categories(const std::string & pretag_cat) const;
 
     ExtendedPdf * get_extended_pdf_ptr(const std::string & pretag_cat, const std::string & tag_cat);
     double get_data_tag_counts(const std::string & pretag_cat, const std::string & tag_cat) const;

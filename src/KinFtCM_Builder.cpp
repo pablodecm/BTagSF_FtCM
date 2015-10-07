@@ -113,7 +113,7 @@ void Builder::set_mc_jet_tag_effs() {
   }
 }
 
-std::vector<std::string> Builder::add_all_categories( double min_counts_pretag,
+std::vector<std::string> Builder::add_all_categories( bool all_tag_cats, double min_counts_pretag,
                                   double min_counts_tag) {
 
   std::set<std::pair<std::string,std::string>> unique_cats;
@@ -153,7 +153,12 @@ std::vector<std::string> Builder::add_all_categories( double min_counts_pretag,
       {
         pretag_pairs.emplace_back(cat.first, counts_pretag);
       }
-      if ( counts_tag > min_counts_tag) {
+      if (all_tag_cats) {
+        std::vector<std::string> tag_cats = FtCM::all_tag_cats(cat.first);
+        for ( const auto & tag_cat : tag_cats) {
+          selected_cats.insert(std::make_pair(cat.first, tag_cat));
+        }
+      } else if ( counts_tag > min_counts_tag) {
         // translate tag cat name to short format
         std::string short_cat(data_comps_.at(0).get_n_cat(),'0');
         for (std::size_t b = 0; b < data_comps_.at(0).get_n_cat(); b++) {
@@ -202,6 +207,29 @@ void Builder::add_pretag_category( const std::string & pretag_cat) {
     add_category(cat.first, cat.second);
   }
  
+}
+
+std::vector<std::string> Builder::get_tag_categories( const std::string & pretag_cat) const {
+
+  std::vector<std::pair<std::string, double>> tag_pairs;
+  for (const auto & cat : cat_set_) {
+    if (cat.first == pretag_cat) {
+      tag_pairs.emplace_back(cat.second, get_data_tag_counts(cat.first, cat.second));
+    }
+  } 
+
+  std::sort(tag_pairs.begin(), tag_pairs.end(), 
+      [](const std::pair<std::string,double> & lhs, const std::pair<std::string,double> & rhs ) 
+      {
+        return lhs.second > rhs.second;
+      });
+
+  std::vector<std::string> tag_names;
+  for ( const auto & tag_pair : tag_pairs) {
+    tag_names.emplace_back(tag_pair.first);
+  }
+  
+  return tag_names;
 }
 
 

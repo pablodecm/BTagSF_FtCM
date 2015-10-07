@@ -51,5 +51,35 @@ namespace FtCM {
   }
 
 
+  std::vector<std::string> all_tag_cats(const std::string & pretag_cat) {
+
+    std::vector<std::vector<std::string>> list_comb;
+    
+    for (const char & c: pretag_cat) {
+      list_comb.emplace_back();
+      char cc = c;  
+      while ( cc != '0') { 
+        std::string s;  
+        s.push_back(cc);
+        list_comb.back().emplace_back(s);
+        cc--;  
+      }
+      std::string s;  
+      s.push_back(cc);
+      list_comb.back().emplace_back(s);
+    }
+
+    std::vector<std::vector<std::string>> all_comb = cart_product(list_comb);
+    std::vector<std::string> tag_cats;
+    for (const auto & v_tag_cats : all_comb) {
+      std::string tag_cat;
+      for (const auto & n : v_tag_cats) {
+        tag_cat += n;
+      }
+      tag_cats.emplace_back(tag_cat);
+    }
+
+    return tag_cats;
+  }
 }
   

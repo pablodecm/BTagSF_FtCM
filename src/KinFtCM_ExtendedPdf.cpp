@@ -119,6 +119,11 @@ Double_t ExtendedPdf::expectedEvents(const RooArgSet* nset) const {
       }  
     }
   }
+
+  // avoid negative expected events
+  if (value < 0.0) {
+    value = 0.0;
+  }
   return value;
 }
 
