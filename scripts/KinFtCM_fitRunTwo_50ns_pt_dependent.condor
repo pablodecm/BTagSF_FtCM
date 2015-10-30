@@ -1,0 +1,13 @@
+ID = $(Cluster).$(Process) 
+
+executable =condor_runner.sh
+output  = $(executable).$(ID).out
+error   = $(executable).$(ID).err
+log     = $(executable).$(Cluster).log
+
+arguments = KinFtCM_fitRunTwo_50ns_pt_dependent.py pfCombinedInclusiveSecondaryVertexV2BJetTags 0.604
+queue
+arguments = KinFtCM_fitRunTwo_50ns_pt_dependent.py pfCombinedInclusiveSecondaryVertexV2BJetTags 0.890
+queue
+arguments = KinFtCM_fitRunTwo_50ns_pt_dependent.py pfCombinedInclusiveSecondaryVertexV2BJetTags 0.970
+queue
