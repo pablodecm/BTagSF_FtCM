@@ -22,14 +22,19 @@ ttbar_m= [s.format("MUP_") for s in mc_bn[0:1]] + [s.format("MDOWN_") for s in m
 jec_samples = [s.format("JEC_UP_") for s in mc_bn] + [s.format("JEC_DOWN_") for s in mc_bn]
 jer_samples = [s.format("JER_UP_") for s in mc_bn] + [s.format("JER_DOWN_") for s in mc_bn]
 
-mc_samples = [(file_dir + s) for s in (nom_samples+ttbar_s+ttbar_m+jec_samples+jer_samples)]
+mc_samples = [(file_dir + s) for s in (nom_samples)]
 data_samples = [(file_dir + s) for s in data]
 ptBins = [0, 10000]
 etaBins = [-2.4, 2.4]
 
 
-wp_list = np.linspace(0.0,1.0,20).tolist() +  [0.244, 0.679, 0.898]
-taggers = {"combinedSecondaryVertexBJetTags": wp_list}
+csv_list = np.linspace(0.0,1.0,20).tolist() +  [0.244, 0.679, 0.898]
+jp_list = np.linspace(0.0,1.0,20).tolist() +  [0.275, 0.545, 0.790] 
+tche_list = np.linspace(0.0,20.0,20).tolist() +  [3.41]
+
+taggers = {"combinedSecondaryVertexBJetTags": csv_list,
+           "jetProbabilityBJetTags": jp_list, 
+           "trackCountingHighPurBJetTags": tche_list} 
 
 out_dir = "../output/CSV_wp_scan/"
 

@@ -48,6 +48,7 @@ namespace KinFtCM {
 
     // configuration options
     bool zeroNegativeFracs = false;
+    bool useDataPretagNorm = false;
 
 
     Builder(std::string tagger, double workPoint, double lumi) : 

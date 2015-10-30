@@ -5,6 +5,8 @@
 *.err
 *.ipynb_checkpoints
 *.root
+*.log
+*.DS_Store
 output
 python/__init__.py
 test/RooFormula*

@@ -28,7 +28,8 @@ public:
 	         const RooArgList& xsecs,
 	         const RooArgList& b_jet_tag_effs,
 	         const RooArgList& c_jet_tag_effs,
-	         const RooArgList& l_jet_tag_effs);
+	         const RooArgList& l_jet_tag_effs,
+           double pretag_ev_data = -1.0);
   ExtendedPdf(const ExtendedPdf& other, const char* name=0) ;
   virtual TObject* clone(const char* newname) const { return new ExtendedPdf(*this,newname); }
   inline virtual ~ExtendedPdf() { }
@@ -38,12 +39,20 @@ public:
   {
     cat_ = cat;
     frac_ = frac; 
+    // obtain efficiency from ev selection to pretag kin cat
+   for (std::size_t c_i=0; c_i < cat_.size(); c_i++) { // for each kinematic category
+    for (std::size_t s_i=0; s_i < cat_.at(c_i).size(); s_i++) { // for each sample
+      const double & i_frac = frac_.at(c_i).at(s_i);
+      pretag_cat_effs_.at(s_i) += i_frac;
+    }
+   }
   }
 
   void set_norms(std::vector<Norm> norms) { norms_ =norms;}
   void set_category(const std::string & pretag_cat, const std::string & tag_cat)
   { pretag_cat_ = pretag_cat;
-    tag_cat_ = tag_cat; }
+    tag_cat_ = tag_cat;
+  }
   virtual ExtendMode extendMode() const { return CanBeExtended ; }
   virtual Double_t expectedEvents(const RooArgSet* nset) const;
   virtual Double_t expectedEvents(const RooArgSet& nset) const { return expectedEvents(&nset); };
@@ -67,6 +76,9 @@ protected:
 
   std::vector<std::vector<std::string>> cat_;
   std::vector<std::vector<double>> frac_;
+
+  double pretag_ev_data_;
+  std::vector<double> pretag_cat_effs_;
 
   Double_t evaluate() const ;
 

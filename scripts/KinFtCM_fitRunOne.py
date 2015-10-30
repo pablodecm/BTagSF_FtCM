@@ -13,9 +13,9 @@ parser.add_argument('workpoint', metavar='wp', type=float,
                            help='the wp of the tagger to perform the fit')
 args = parser.parse_args()
 
-json_dir = "../output/kin_cat/"
+json_dir = "../output/8Tev_pt_dependent/"
 
-mc_samples = [[json_dir+"TTbar_Summer13.json", 6923750, 240.0, 0 ],
+mc_samples = [[json_dir+"TTbar_Summer13.json", 6923750, 247.7, 0 ],
               [json_dir+"WJets_Summer13.json", 76041475, 36257.2, 1],
               [json_dir+"T_tW_Summer13.json", 497658, 11.15, 1],
               [json_dir+"Tbar_tW_Summer13.json", 493460, 11.15, 1],
@@ -26,7 +26,7 @@ data_samples = [[json_dir+"Data_2012ABCD_Winter13_ReReco.json"]]
 
 lumi = 19789.0
 
-result_dir = "./KinFtCM_17092015/"
+result_dir = "./8TeV_pt_dependent/"
 tagger = args.tagger
 wp = args.workpoint
 
@@ -44,7 +44,7 @@ for data_s in data_samples:
     m.add_data_component(*data_s)
 
 # min data counts per pretag category
-m.add_all_categories(100)
+cats = m.add_all_categories(True, 1000)
 m.set_mc_jet_tag_effs()
 
 # get and fit data
@@ -56,28 +56,10 @@ fit_result.SaveAs(result_dir+"fit_result_{}_{}_first.root".format(tagger,wp))
 m.b_jet_tag_effs_.Print("v")
 m.c_jet_tag_effs_.Print("v")
 m.l_jet_tag_effs_.Print("v")
-print "Set MC tag effs"
+#print "Set MC tag effs"
 m.set_mc_jet_tag_effs()
 m.b_jet_tag_effs_.Print("v")
 m.c_jet_tag_effs_.Print("v")
 m.l_jet_tag_effs_.Print("v")
-
- # fit data
-fit_result = m.sim_kin_pdf_.fitTo(data, RooFit.Extended(1), RooFit.NumCPU(8), RooFit.Save(1))
-fit_result.SaveAs(result_dir+"fit_result_{}_{}_second.root".format(tagger,wp))
-
-# set mc effs and fit again
-m.b_jet_tag_effs_.Print("v")
-m.c_jet_tag_effs_.Print("v")
-m.l_jet_tag_effs_.Print("v")
-print "Set MC tag effs"
-m.set_mc_jet_tag_effs()
-m.b_jet_tag_effs_.Print("v")
-m.c_jet_tag_effs_.Print("v")
-m.l_jet_tag_effs_.Print("v")
-
-
-
-
 
 

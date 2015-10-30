@@ -21,16 +21,16 @@ ttbar_m= [s.format("MUP_") for s in mc_bn[0:1]] + [s.format("MDOWN_") for s in m
 jec_samples = [s.format("JEC_UP_") for s in mc_bn] + [s.format("JEC_DOWN_") for s in mc_bn]
 jer_samples = [s.format("JER_UP_") for s in mc_bn] + [s.format("JER_DOWN_") for s in mc_bn]
 
-mc_samples = [(file_dir + s) for s in (nom_samples+ttbar_s+ttbar_m+jec_samples+jer_samples)]
+mc_samples = [(file_dir + s) for s in (nom_samples)]
 data_samples = [(file_dir + s) for s in data]
-ptBins = [30, 50, 80, 120, 160, 320]
+ptBins = [30, 50, 80, 120, 210, 320]
 etaBins = [-2.4, 2.4]
 
 taggers = {"combinedSecondaryVertexBJetTags": [0.244, 0.679, 0.898],
            "jetProbabilityBJetTags": [0.275, 0.545, 0.790], 
            "trackCountingHighPurBJetTags": [3.41]} 
 
-out_dir = "../output/kin_cat/" 
+out_dir = "../output/8Tev_pt_dependent/" 
 
 jetCM = JetCountingManager(ptBins, etaBins, taggers, oldMuonSF = True, out_dir=out_dir)  
 

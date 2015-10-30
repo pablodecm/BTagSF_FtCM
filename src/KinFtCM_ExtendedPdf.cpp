@@ -14,7 +14,8 @@ namespace KinFtCM {
                     const RooArgList& xsecs,
                     const RooArgList& b_jet_tag_effs,
                     const RooArgList& c_jet_tag_effs,
-                    const RooArgList& l_jet_tag_effs) :
+                    const RooArgList& l_jet_tag_effs,
+                    double pretag_ev_data) :
    RooAbsPdf(name,title), 
    lumi_("lumi","lumi",this,lumi),
    kappa_("kappa","kappa",this,kappa),
@@ -24,13 +25,16 @@ namespace KinFtCM {
    c_jet_tag_effs_("tag_effs","tag_effs",this),
    l_jet_tag_effs_("tag_effs","tag_effs",this),
    cat_(),
-   frac_()
+   frac_(),
+   pretag_ev_data_(pretag_ev_data),
+   pretag_cat_effs_(xsecs.getSize(), 0.0)
  { 
    pretag_effs_.add(pretag_effs);
    xsecs_.add(xsecs);
    b_jet_tag_effs_.add(b_jet_tag_effs);
    c_jet_tag_effs_.add(c_jet_tag_effs);
    l_jet_tag_effs_.add(l_jet_tag_effs);
+  
  } 
 
 
@@ -47,7 +51,9 @@ namespace KinFtCM {
    tag_cat_(other.tag_cat_),
    norms_(other.norms_),
    cat_(other.cat_),
-   frac_(other.frac_)
+   frac_(other.frac_),
+   pretag_ev_data_(other.pretag_ev_data_),
+   pretag_cat_effs_(other.pretag_cat_effs_)
  { 
  } 
 
@@ -65,6 +71,7 @@ Double_t ExtendedPdf::expectedEvents(const RooArgSet* nset) const {
   double value = 0.0;
   double lumi = double(lumi_);
   double kappa = double(kappa_);
+  double w_sum = 0.0;
 
   std::vector<std::vector<double>> jet_tag_effs( n_cat, std::vector<double>(3, 0.0));  
   std::vector<double> c_jet_tag_effs(c_jet_tag_effs_.getSize(),0.0);  
@@ -80,6 +87,11 @@ Double_t ExtendedPdf::expectedEvents(const RooArgSet* nset) const {
   for (std::size_t s_i=0; s_i < n_sam ; s_i++) { // for each sample 
      xsecs.at(s_i) = dynamic_cast<RooAbsReal&>(xsecs_[s_i]).getVal();
      pretag_effs.at(s_i) = dynamic_cast<RooAbsReal&>(pretag_effs_[s_i]).getVal();
+     if (norms_.at(s_i) == SIGNAL)  { 
+        w_sum += lumi*xsecs.at(s_i)*pretag_effs.at(s_i)*pretag_cat_effs_.at(s_i);
+     } else if (norms_.at(s_i) == BKG) {
+        w_sum += kappa*lumi*xsecs.at(s_i)*pretag_effs.at(s_i)*pretag_cat_effs_.at(s_i);
+     } 
   }
 
   for (std::size_t c_i=0; c_i < cat_.size(); c_i++) { // for each kinematic category
@@ -120,7 +132,15 @@ Double_t ExtendedPdf::expectedEvents(const RooArgSet* nset) const {
     }
   }
 
-  // avoid negative expected events
+  // use pretag data counts as normalization
+  if (pretag_ev_data_ > 0) {
+    if (w_sum > 1e-50) { // avoid null division
+      value *= pretag_ev_data_/w_sum;
+    } else {
+      value = 1e-50;
+    }
+  }
+  // avoid negative expected events (negative MC weights)
   if (value < 0.0) {
     value = 0.0;
   }
@@ -134,6 +154,7 @@ std::vector<double> ExtendedPdf::get_mcs_tag_counts() const {
   std::vector<double> mcs_tag_counts(n_sam, 0.0);
   double lumi = double(lumi_);
   double kappa = double(kappa_);
+  double w_sum = 0.0;
 
   std::vector<std::vector<double>> jet_tag_effs( n_cat, std::vector<double>(3, 0.0));  
   std::vector<double> c_jet_tag_effs(c_jet_tag_effs_.getSize(),0.0);  
@@ -149,7 +170,14 @@ std::vector<double> ExtendedPdf::get_mcs_tag_counts() const {
   for (std::size_t s_i=0; s_i < n_sam ; s_i++) { // for each sample 
      xsecs.at(s_i) = dynamic_cast<RooAbsReal&>(xsecs_[s_i]).getVal();
      pretag_effs.at(s_i) = dynamic_cast<RooAbsReal&>(pretag_effs_[s_i]).getVal();
+     if (norms_.at(s_i) == SIGNAL)  { 
+        w_sum += lumi*xsecs.at(s_i)*pretag_effs.at(s_i)*pretag_cat_effs_.at(s_i);
+
+     } else if (norms_.at(s_i) == BKG) {
+        w_sum += kappa*lumi*xsecs.at(s_i)*pretag_effs.at(s_i)*pretag_cat_effs_.at(s_i);
+     } 
   }
+
 
   for (std::size_t c_i=0; c_i < cat_.size(); c_i++) { // for each kinematic category
     for (std::size_t s_i=0; s_i < cat_.at(c_i).size(); s_i++) { // for each sample
@@ -179,6 +207,7 @@ std::vector<double> ExtendedPdf::get_mcs_tag_counts() const {
                        std::pow(1.0-jet_tag_effs.at(j_i).at(j_t), i-i_p); 
           }
         }
+  
         // update value sum
         if (norms_.at(s_i) == SIGNAL)  { 
           mcs_tag_counts.at(s_i) += lumi*xsecs.at(s_i)*pretag_effs.at(s_i)*frac*pos_prob;
@@ -188,6 +217,22 @@ std::vector<double> ExtendedPdf::get_mcs_tag_counts() const {
       }  
     }
   }
+
+  for (auto & mc_tag_counts : mcs_tag_counts) {
+    // use pretag data counts as normalization
+    if (pretag_ev_data_ > 0) {
+      if (w_sum > 1e-5) { // avoid null division
+        mc_tag_counts *= pretag_ev_data_/w_sum;
+      } else {
+        mc_tag_counts = 0.0;
+      }
+    }
+    // avoid negative expected events (negative MC weights)
+    if (mc_tag_counts < 0.0) {
+      mc_tag_counts = 0.0;
+    }
+  } 
+
   return mcs_tag_counts;
 }
 

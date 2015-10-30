@@ -238,13 +238,18 @@ ExtendedPdf * Builder::get_extended_pdf_ptr(const std::string & pretag_cat,
                                             const std::string & tag_cat)
 {
   std::string name = "ExtendedPdf-"+pretag_cat+":"+tag_cat;
+  double pretag_ev_data = - 1.0;
+  if (useDataPretagNorm ) {
+    pretag_ev_data = get_data_pretag_counts(pretag_cat); 
+  }
   ExtendedPdf * ext_pdf =  new ExtendedPdf(name.c_str(), name.c_str(),
                                            lumi_, kappa_,
                                            pretag_effs_,
                                            xsecs_,
                                            b_jet_tag_effs_,   
                                            c_jet_tag_effs_,   
-                                           l_jet_tag_effs_);   
+                                           l_jet_tag_effs_,
+                                           pretag_ev_data);   
   ext_pdf->set_norms(mc_norms_);
   ext_pdf->set_category(pretag_cat, tag_cat);
   
