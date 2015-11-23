@@ -10,4 +10,5 @@
   <class name="KinFtCM::Component"/>
   <class name="KinFtCM::Builder"/>
   <class name="KinFtCM::ExtendedPdf"/>
+  <class name="EventSelector"/>
 </lcgdict>  

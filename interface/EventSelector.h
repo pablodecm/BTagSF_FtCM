@@ -1,6 +1,6 @@
 
-#ifndef JetCounter_h
-#define JetCounter_h
+#ifndef EventSelector_h
+#define EventSelector_h
 
 #include <vector>
 #include <string>
@@ -14,7 +14,6 @@
 #include <TSelector.h>
 #include <TTreeReader.h>
 #include <TTreeReaderValue.h>
-#include <TH2.h>
 
 // mut_dataformats includes
 #include "mut_framework/mut_dataformats/interface/EventInfo.h"
@@ -22,20 +21,15 @@
 #include "mut_framework/mut_dataformats/interface/Jet.h"
 #include "mut_framework/mut_dataformats/interface/MET.h"
 
-// FtCM JetRegistry
-#include "mut_framework/BTagSF_FtCM/interface/JetRegistry.h"
 
 
-class JetCounter : public TSelector {
+class EventSelector : public TSelector {
 public :
+
+   long n_entries;
   
    // asociated with a TTree 
    TTreeReader fReader;
-
-   // is actual data
-   bool isData_ = false;
-   // use 2012 simplified Muon SFs
-   bool useOldMuonSF_ = false;
 
    // asociated with a TBranch
    TTreeReaderValue<mut::EventInfo> eventInfo;
@@ -43,37 +37,32 @@ public :
    TTreeReaderValue<std::vector<mut::Jet>> pfjets;
    TTreeReaderValue<mut::MET> pfmet;
 
+    // mut objects to save to TTree
+    mut::EventInfo * eventInfo_ptr = nullptr;
+    std::vector<mut::Jet> * pfjets_ptr = nullptr;
+    std::vector<mut::Lepton> * muons_ptr = nullptr;
+    std::vector<mut::Lepton> * elecs_ptr = nullptr;
+    mut::MET * pfmet_ptr = nullptr;
+
+    // output filename
+    std::string o_filename;
+    // output TTree pointer
+    TTree * ttree;
+    // output TFile poinyer
+    TFile * o_file;
+
    // mimimum pt for each good jet
    std::vector<double> min_pt_jets_ = { 70.0, 50.0, 30.0};
+   double jet_max_eta_ = 2.4;
 
-   // vector of taggers to be used
-   std::vector<std::string> taggers_;
-   // vector of working points for each tagger
-   std::vector<std::vector<double>> workPoints_;
-
-   // pt and eta bins
-   std::vector<double> ptBins_;
-   std::vector<double> etaBins_;
-
-   // pt-eta histogram of good jets
-   TH2D * all_good_jets;
-
-   // event weights to take into account (set defaults)
-   std::vector<std::string> eWeights_ = 
-    { "pileup_nom",
-      "MCweight" };
-
-   // class to manage and save results 
-   JetRegistry * jetRegistry_;
-    
    // default constructor
-   JetCounter(TTree * /*tree*/ =0) :
+   EventSelector(TTree * /*tree*/ =0) :
       eventInfo(fReader, "eventInfo"),
       muons(fReader, "muons"),
       pfjets(fReader, "pfjets"),
       pfmet(fReader, "pfmet") { }
    // destructor
-   virtual ~JetCounter() { }
+   virtual ~EventSelector() { }
 
    // TSelector functions
    virtual Int_t   Version() const { return 2; }
@@ -91,40 +80,23 @@ public :
 
    void set_min_pt_jets( std::vector<double> min_pt_jets) { min_pt_jets_ = min_pt_jets; }
 
-   void setTaggers( std::vector<std::string> taggers ) { taggers_ = taggers; }
-   void addTagger( std::string name, double min, double max, int num);
-   void addTagger( std::string name, std::vector<double> workPoints);
-
-   void setPtBins( std::vector<double> ptBins ) { ptBins_ = ptBins; }
-   void setEtaBins( std::vector<double> etaBins ) { etaBins_ = etaBins; }
-
-   void setEventWeights( std::vector<std::string> eWeights ) { eWeights_ = eWeights; }
-   double getEventWeight();
-   void useOldMuonSF( bool value) { useOldMuonSF_ = value; } 
-
-   void serialize(std::string filename) { jetRegistry_->serialize(filename); } 
-   void resetJetRegistry() { 
-     delete jetRegistry_;
-     delete all_good_jets; 
-   }
-
 };
 
 #endif
 
-#ifdef JetCounter_cxx
+#ifdef EventSelector_cxx
 
 // each new tree is opened
-void JetCounter::Init(TTree *tree)
+void EventSelector::Init(TTree *tree)
 {
   fReader.SetTree(tree);
 }
 
 // each new file is opened
-Bool_t JetCounter::Notify()
+Bool_t EventSelector::Notify()
 {
 
    return kTRUE;
 }
 
-#endif // #ifdef JetCounter_cxx
+#endif // #ifdef EventSelector_cxx

@@ -8,6 +8,7 @@
 #include "mut_framework/BTagSF_FtCM/interface/KinFtCM_Component.h"
 #include "mut_framework/BTagSF_FtCM/interface/KinFtCM_Builder.h"
 #include "mut_framework/BTagSF_FtCM/interface/KinFtCM_ExtendedPdf.h"
+#include "mut_framework/BTagSF_FtCM/interface/EventSelector.h"
 
 namespace { struct dict_FtCM {
   JetCounter dummy0;
@@ -21,6 +22,8 @@ namespace { struct dict_FtCM {
   KinFtCM::Component dummy8;
   KinFtCM::Builder dummy9;
   KinFtCM::ExtendedPdf dummy10;
+  EventSelector dummy11;
+
 
 };
 }
