@@ -6,5 +6,5 @@
   <class name="std::map<std::string,vector<double>>"/> 
   <class name="Builder"/>
   <class name="PretagTagPdf"/>
-  <class name="EventSelector"/>
+  <class name="SingleLeptonSelector"/>
 </lcgdict>  

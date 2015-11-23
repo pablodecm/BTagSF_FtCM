@@ -1,9 +1,9 @@
-#define EventSelector_cxx
-#include "../interface/EventSelector.h"
+#define SingleLeptonSelector_cxx
+#include "../interface/SingleLeptonSelector.h"
 
 
 // start of query (executed on client)
-void EventSelector::Begin(TTree * /*tree*/)
+void SingleLeptonSelector::Begin(TTree * /*tree*/)
 {
 
    std::string option = GetOption();
@@ -11,7 +11,7 @@ void EventSelector::Begin(TTree * /*tree*/)
 }
 
 // right after begin (executed on slave)
-void EventSelector::SlaveBegin(TTree * /*tree*/)
+void SingleLeptonSelector::SlaveBegin(TTree * /*tree*/)
 {
    std::string  option = GetOption();
 
@@ -43,7 +43,7 @@ void EventSelector::SlaveBegin(TTree * /*tree*/)
 }
 
 // for each entry of the TTree
-Bool_t EventSelector::Process(Long64_t entry)
+Bool_t SingleLeptonSelector::Process(Long64_t entry)
 {
 
   n_entries++;
@@ -131,7 +131,7 @@ Bool_t EventSelector::Process(Long64_t entry)
 }
 
 // all entries have been processed (executed in slave)
-void EventSelector::SlaveTerminate()
+void SingleLeptonSelector::SlaveTerminate()
 {
   ttree->AutoSave();
   delete ttree;
@@ -140,7 +140,7 @@ void EventSelector::SlaveTerminate()
 }
 
 // last function called (on client)
-void EventSelector::Terminate()
+void SingleLeptonSelector::Terminate()
 {
 
 }

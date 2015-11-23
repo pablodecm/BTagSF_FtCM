@@ -36,50 +36,6 @@ Bool_t JetCounter::Process(Long64_t entry)
   // set TTreeReader entry
   fReader.SetEntry(entry);
 
-
-  // basic event selection (only mu+jets channel)
-  std::vector<int> good_jets_index;
-  if (muons->size() != 1) return false; 
-  // check good lumi filter
-  if (eventInfo->hasFilter("goodLumi")) {
-    if (!eventInfo->getFilter("goodLumi")) {
-      return false; // it has but no passes filter
-    }
-  }
-  bool pass_event_sel = false;
-  if ( pfmet->Et() >= 20.0 &&
-       muons->at(0).pt() > 35.0 &&
-       std::abs(muons->at(0).eta()) < 2.1 &&
-       muons->at(0).getLeptonIso("relIso") < 0.125 ) 
-  {
-    // check number of jets in pt/eta region 
-    for ( std::size_t j = 0; j < pfjets->size(); j++) {
-      const auto & pfjet = pfjets->at(j);
-      // fill will return -1 if not in pt/eta region
-      if (all_good_jets->Fill( pfjet.pt() , pfjet.eta()) > 0) { 
-        // check if each jet passes the corresponding pt criteria
-        if (good_jets_index.size() < min_pt_jets_.size()) {
-          if (pfjet.pt() >=  min_pt_jets_.at(good_jets_index.size())) {
-            good_jets_index.emplace_back(j);
-          }
-        } else {
-          if (pfjet.pt() >=  min_pt_jets_.back()) {
-            good_jets_index.emplace_back(j);
-          }
-        } 
-      }
-    } 
-
-    // pass event selection if 4 or more good jets
-    if (good_jets_index.size() >= 4) {
-      pass_event_sel = true;
-    } else {
-      return false; // no enough good jets
-    }
-  } else {
-    return false; // no passes event selection
-  }
-
   // categories counts (init to zero)
   JetRegistry::KinematicCategory kin_cat((ptBins_.size()-1)*(etaBins_.size()-1),'0');
   JetRegistry::FlavourCategory flav_cat((ptBins_.size()-1)*(etaBins_.size()-1),"0000");
@@ -96,12 +52,16 @@ Bool_t JetCounter::Process(Long64_t entry)
   double weight = getEventWeight();
 
   // fill jet multiplicity
-  jetRegistry_->registerJetMultiplicity(good_jets_index.size(), weight);
+  jetRegistry_->registerJetMultiplicity(pfjets->size(), weight);
 
-  // for each good jet index
-  for (auto j : good_jets_index) {
+
+  for ( std::size_t j = 0; j < pfjets->size(); j++) {
     // reference to current jet
     const auto & good_jet = pfjets->at(j);
+    // fill will return -1 if not in pt/eta region
+    if (all_good_jets->Fill( good_jet.pt() , good_jet.eta()) < 0) { 
+      std::cout << "WARNING: some jets are outside of pt/eta ranges" << std::endl;
+    }
     std::string jet_type = jetRegistry_->registerJet(good_jet, tag_kin_cat, weight);
     kin_cat[jet_type[1]]++; // increment kin category
     flav_cat[jet_type[1]][jet_type[0]]++; // increment flavour for kinematic cat
@@ -110,7 +70,7 @@ Bool_t JetCounter::Process(Long64_t entry)
 
   jetRegistry_->registerEvent(kin_cat, flav_cat, tag_kin_cat, weight);
 
-  return pass_event_sel;
+  return true;
 
 }
 
@@ -151,14 +111,6 @@ double JetCounter::getEventWeight() {
   if (!isData_) {
     for ( auto eWeight : eWeights_ ) {
       weight*=eventInfo->getWeight(eWeight);
-    }
-    if (useOldMuonSF_) { // apply muon SF as a function of eta
-      double muon_eta = muons->at(0).eta();
-      if (std::abs(muon_eta) <= 0.9) {weight *= 0.994*0.993*0.976;}
-      else if (std::abs(muon_eta) > 0.9 && std::abs(muon_eta) <= 1.2 ) 
-        {weight *= 0.992*0.998*0.961;}
-      else if (std::abs(muon_eta) > 1.2 && std::abs(muon_eta) <= 2.1 )
-        {weight *= 0.998*1.002*0.983; }
     }
   }   
 

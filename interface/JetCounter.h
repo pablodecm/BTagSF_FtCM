@@ -34,8 +34,6 @@ public :
 
    // is actual data
    bool isData_ = false;
-   // use 2012 simplified Muon SFs
-   bool useOldMuonSF_ = false;
 
    // asociated with a TBranch
    TTreeReaderValue<mut::EventInfo> eventInfo;
@@ -100,7 +98,6 @@ public :
 
    void setEventWeights( std::vector<std::string> eWeights ) { eWeights_ = eWeights; }
    double getEventWeight();
-   void useOldMuonSF( bool value) { useOldMuonSF_ = value; } 
 
    void serialize(std::string filename) { jetRegistry_->serialize(filename); } 
    void resetJetRegistry() { 

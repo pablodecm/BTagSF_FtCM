@@ -1,6 +1,6 @@
 
-#ifndef EventSelector_h
-#define EventSelector_h
+#ifndef SingleLeptonSelector_h
+#define SingleLeptonSelector_h
 
 #include <vector>
 #include <string>
@@ -23,7 +23,7 @@
 
 
 
-class EventSelector : public TSelector {
+class SingleLeptonSelector : public TSelector {
 public :
 
    long n_entries;
@@ -56,13 +56,13 @@ public :
    double jet_max_eta_ = 2.4;
 
    // default constructor
-   EventSelector(TTree * /*tree*/ =0) :
+   SingleLeptonSelector(TTree * /*tree*/ =0) :
       eventInfo(fReader, "eventInfo"),
       muons(fReader, "muons"),
       pfjets(fReader, "pfjets"),
       pfmet(fReader, "pfmet") { }
    // destructor
-   virtual ~EventSelector() { }
+   virtual ~SingleLeptonSelector() { }
 
    // TSelector functions
    virtual Int_t   Version() const { return 2; }
@@ -84,19 +84,19 @@ public :
 
 #endif
 
-#ifdef EventSelector_cxx
+#ifdef SingleLeptonSelector_cxx
 
 // each new tree is opened
-void EventSelector::Init(TTree *tree)
+void SingleLeptonSelector::Init(TTree *tree)
 {
   fReader.SetTree(tree);
 }
 
 // each new file is opened
-Bool_t EventSelector::Notify()
+Bool_t SingleLeptonSelector::Notify()
 {
 
    return kTRUE;
 }
 
-#endif // #ifdef EventSelector_cxx
+#endif // #ifdef SingleLeptonSelector_cxx

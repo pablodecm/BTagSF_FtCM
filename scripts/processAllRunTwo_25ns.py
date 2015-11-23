@@ -47,7 +47,7 @@ else:
 mc_files = [ (i_folder+mc_samples[s]["full_name"]+".root") for s in mc_names]
 data_files = [ (i_folder+data_samples[s]["full_name"]+".root") for s in data_names]
 
-jetCM = JetCountingManager(ptBins, etaBins, taggers, oldMuonSF = False, out_dir=o_folder)  
+jetCM = JetCountingManager(ptBins, etaBins, taggers, out_dir=o_folder)  
 
 jetCM.process(mc_files, isData = False )
 jetCM.process(data_files, isData = True)

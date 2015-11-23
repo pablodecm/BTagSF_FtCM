@@ -1,7 +1,7 @@
 #!/usr/bin/env python 
 
 from mut_framework.LJMET_converter.samples_25ns import data_samples,mc_samples
-from ROOT import TChain, EventSelector 
+from ROOT import TChain, SingleLeptonSelector 
 import  os
 import argparse
 
@@ -31,7 +31,7 @@ else:
     data_names = args.data_samples
 
 for name in mc_names:
-    selector = EventSelector()
+    selector = SingleLeptonSelector()
     full_name = mc_samples[name]["full_name"]
     outfile = o_folder+full_name+".root" 
     tchain = TChain("tree")
@@ -42,7 +42,7 @@ for name in mc_names:
     tchain.Process(selector,"ofile="+outfile)
 
 for name in data_names:
-    selector = EventSelector()
+    selector = SingleLeptonSelector()
     full_name = data_samples[name]["full_name"]
     outfile = o_folder+full_name+".root" 
     tchain = TChain("tree")
