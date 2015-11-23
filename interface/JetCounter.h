@@ -41,9 +41,6 @@ public :
    TTreeReaderValue<std::vector<mut::Jet>> pfjets;
    TTreeReaderValue<mut::MET> pfmet;
 
-   // mimimum pt for each good jet
-   std::vector<double> min_pt_jets_ = { 70.0, 50.0, 30.0};
-
    // vector of taggers to be used
    std::vector<std::string> taggers_;
    // vector of working points for each tagger
@@ -86,8 +83,6 @@ public :
    virtual TList  *GetOutputList() const { return fOutput; }
    virtual void    SlaveTerminate();
    virtual void    Terminate();
-
-   void set_min_pt_jets( std::vector<double> min_pt_jets) { min_pt_jets_ = min_pt_jets; }
 
    void setTaggers( std::vector<std::string> taggers ) { taggers_ = taggers; }
    void addTagger( std::string name, double min, double max, int num);
