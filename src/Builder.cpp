@@ -1,8 +1,6 @@
 
-#include "../interface/KinFtCM_Builder.h"
+#include "../interface/Builder.h"
 #include "mut_framework/mut_utils/interface/prettyprint.hpp"
-
-namespace KinFtCM {
 
 void Builder::add_mc_component(std::string filename, double nEventGen,
                              double xSec, Norm n) {
@@ -234,15 +232,15 @@ std::vector<std::string> Builder::get_tag_categories( const std::string & pretag
 
 
 
-ExtendedPdf * Builder::get_extended_pdf_ptr(const std::string & pretag_cat,
+PretagTagPdf * Builder::get_extended_pdf_ptr(const std::string & pretag_cat,
                                             const std::string & tag_cat)
 {
-  std::string name = "ExtendedPdf-"+pretag_cat+":"+tag_cat;
+  std::string name = "PretagTagPdf-"+pretag_cat+":"+tag_cat;
   double pretag_ev_data = - 1.0;
   if (useDataPretagNorm ) {
     pretag_ev_data = get_data_pretag_counts(pretag_cat); 
   }
-  ExtendedPdf * ext_pdf =  new ExtendedPdf(name.c_str(), name.c_str(),
+  PretagTagPdf * ext_pdf =  new PretagTagPdf(name.c_str(), name.c_str(),
                                            lumi_, kappa_,
                                            pretag_effs_,
                                            xsecs_,
@@ -333,12 +331,12 @@ double Builder::get_expected_pretag_counts(const std::string & pretag_cat) const
 }
 double Builder::get_expected_tag_counts(const std::string & pretag_cat, const std::string & tag_cat) const {
 
-  std::string pdf_name = "ExtendedPdf-"+pretag_cat+":"+tag_cat;
+  std::string pdf_name = "PretagTagPdf-"+pretag_cat+":"+tag_cat;
   int pos = kin_bin_pdfs_.index(pdf_name.c_str());
 
 
   if (pos > -1) { // found in RooArgList
-    ExtendedPdf & ext_pdf = dynamic_cast<ExtendedPdf &>(kin_bin_pdfs_[pos]);
+    PretagTagPdf & ext_pdf = dynamic_cast<PretagTagPdf &>(kin_bin_pdfs_[pos]);
     return ext_pdf.expectedEvents(RooArgSet());  
   } 
 
@@ -359,11 +357,11 @@ std::vector<double> Builder::get_mcs_pretag_counts(const std::string & pretag_ca
 
 std::vector<double> Builder::get_mcs_tag_counts(const std::string & pretag_cat, const std::string & tag_cat) const {
 
-  std::string pdf_name = "ExtendedPdf-"+pretag_cat+":"+tag_cat;
+  std::string pdf_name = "PretagTagPdf-"+pretag_cat+":"+tag_cat;
   int pos = kin_bin_pdfs_.index(pdf_name.c_str());
 
   if (pos > -1) { // found in RooArgList
-    ExtendedPdf & ext_pdf = dynamic_cast<ExtendedPdf &>(kin_bin_pdfs_[pos]);
+    PretagTagPdf & ext_pdf = dynamic_cast<PretagTagPdf &>(kin_bin_pdfs_[pos]);
     return ext_pdf.get_mcs_tag_counts();  
   } 
 
@@ -371,8 +369,4 @@ std::vector<double> Builder::get_mcs_tag_counts(const std::string & pretag_cat, 
 
   return {};
 }
-
-
-}
-
 

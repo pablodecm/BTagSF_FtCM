@@ -1,11 +1,14 @@
 
 #include "../interface/Component.h"
 
-Component::Component(std::string filename, double nEventGen,
-                     double xSec, Norm n) :
-                     nEventGen_(nEventGen),
-                     xSec_(xSec),
-                     n_(n)
+Component::Component(std::string filename, std::string tagger,
+                              double workPoint, double nEventGen,
+                              double xSec, Norm n) :
+                              nEventGen_(nEventGen),
+                              xSec_(xSec),
+                              n_(n),
+                              tagger_(tagger),
+                              workPoint_(workPoint)
 {
   std::size_t bar_i = filename.find_last_of('/');
   std::size_t ext_i = filename.find_last_of('.');
@@ -21,51 +24,37 @@ Component::Component(std::string filename, double nEventGen,
   j << f;
 
   // load atributtes from JSON
-  taggers_ = j["taggers"].get<std::vector<std::string>>();
-  workPoints_ = j["workPoints"].get<std::vector<std::vector<double>>>();
   ptBins_ = j["ptBins"].get<std::vector<double>>();
   etaBins_ = j["etaBins"].get<std::vector<double>>();
   nEventPass_ = j["nEventPass"].get<std::vector<double>>();
-  good_cat_jets_ = j["good_cat_jets"].get<std::vector<double>>();
-  good_b_jets_ = j["good_b_jets"].get<std::vector<double>>();
-  good_c_jets_ = j["good_c_jets"].get<std::vector<double>>();
-  good_l_jets_ = j["good_l_jets"].get<std::vector<double>>();
-  good_x_jets_ = j["good_x_jets"].get<std::vector<double>>();
-  tag_cat_jets_ = j["tag_cat_jets"].get<std::vector<std::vector<std::vector<double>>>>();
-  tag_b_jets_ = j["tag_b_jets"].get<std::vector<std::vector<std::vector<double>>>>();
-  tag_c_jets_ = j["tag_c_jets"].get<std::vector<std::vector<std::vector<double>>>>();
-  tag_l_jets_ = j["tag_l_jets"].get<std::vector<std::vector<std::vector<double>>>>();
-  tag_x_jets_ = j["tag_x_jets"].get<std::vector<std::vector<std::vector<double>>>>();
-  tagMultiplicity_ = j["tagMultiplicity"].get<std::vector<std::vector<std::vector<double>>>>();
 
-  // Because get directly does not work
-  for (auto it = j["cat_counts"].begin(); it != j["cat_counts"].end(); ++it) {
-    cat_counts_[it.key()] = it.value().get<std::vector<double>>();
-  }
-
-  // default mapping 
-  for (std::size_t i = 0; i < good_cat_jets_.size() - 1; i++) {
-    if (i==0) {
-      std::vector<int> xl = {0,1};
-      cat_mapping_.emplace_back(xl);
-    } else {
-      cat_mapping_.emplace_back(1,i+1);
-    }
-  }
-
+   // Because get directly does not work
+   for (auto it = j["cat_counts"].begin(); it != j["cat_counts"].end(); ++it) {
+     pretag_cat_counts_[it.key()] = std::map<std::string,std::vector<double>>();
+     for (auto itt = it->begin(); itt != it->end(); ++itt) {
+       pretag_cat_counts_[it.key()][itt.key()] = itt.value().get<std::vector<double>>();
+     }
+   }
+ 
+   // Because get directly does not work
+   std::string one_tag_name = tagger_+":"+std::to_string(workPoint_);
+   std::cout << "Reading tag_cat_counts-"+one_tag_name << std::endl;
+   for (auto it = j["tag_cat_counts-"+one_tag_name].begin();
+        it != j["tag_cat_counts-"+one_tag_name].end(); ++it) {
+     tag_cat_counts_[it.key()] = std::map<std::string,std::vector<double>>();
+     for (auto itt = it->begin(); itt != it->end(); ++itt) {
+       tag_cat_counts_[it.key()][itt.key()] = itt.value().get<std::vector<double>>();
+     }
+   }
+   std::cout << "Reading pretag_cat_counts-"+one_tag_name << std::endl;
+   for (auto it = j["pretag_jet_counts-"+one_tag_name].begin(); 
+        it != j["pretag_jet_counts-"+one_tag_name].end(); ++it) {
+     pretag_jet_counts_[it.key()] = std::map<std::string,std::vector<double>>();
+     for (auto itt = it->begin(); itt != it->end(); ++itt) {
+       pretag_jet_counts_[it.key()][itt.key()] = itt.value().get<std::vector<double>>();
+     }
+   }
 } 
-
-void Component::set_tag_wp(std::string tag, double wp) {
-
-  // set tagger index
-  auto it_tag = std::find(taggers_.begin(), taggers_.end(), tag);
-  i_tag_ = std::distance(taggers_.begin(), it_tag);
-  // set wp index
-  auto it_wp = std::find_if(workPoints_[i_tag_].begin(), workPoints_[i_tag_].end(),
-                            [&] (const double & wp_val) { return (std::abs(wp_val - wp ) < 1.e-6);});
-  i_wp_ = std::distance(workPoints_[i_tag_].begin(), it_wp);
-
-}
 
 
 std::vector<double> Component::get_pretag_eff() const {
@@ -79,142 +68,129 @@ std::vector<double> Component::get_pretag_eff() const {
   return eff;
 }
 
-
-std::vector<double> Component::get_good_cat_jets() const {
-
-  std::vector<double> good_cat_jets;
-  for ( const auto & mapping : cat_mapping_ ) {
-    good_cat_jets.emplace_back(0.0);
-    for (const auto & cat : mapping ) {
-      good_cat_jets.back()+=good_cat_jets_.at(cat);
-    } 
-  }
-  return good_cat_jets;
-}
-
-std::vector<double> Component::get_good_b_jets() const {
-  return good_b_jets_;
-}
-
-std::vector<double> Component::get_good_c_jets() const {
-  return good_c_jets_;
-}
-
-std::vector<double> Component::get_good_l_jets() const {
-  std::vector<double> good_l_jets = good_l_jets_;
-  for (std::size_t i=0; i < good_l_jets.size(); i++) {
-    good_l_jets.at(i) += good_x_jets_.at(i);
-  }
-  return good_l_jets;
-}
-
-std::vector<double> Component::get_good_jets() const {
-  std::vector<double> good_jets = good_b_jets_;
-  for (std::size_t i=0; i < good_jets.size(); i++) {
-    good_jets.at(i) += good_c_jets_.at(i);
-    good_jets.at(i) += good_l_jets_.at(i);
-    good_jets.at(i) += good_x_jets_.at(i);
-  }
+std::vector<double> Component::get_good_jets(
+    const std::vector<int> & type,
+    const std::set<std::pair<std::string,std::string>> & cat_set ) const
+{
+  std::vector<double> good_jets((ptBins_.size()-1)*(etaBins_.size()-1), 0.0);
+  for (const auto & cat : cat_set) {
+    if ( pretag_jet_counts_.count(cat.first) > 0) {
+      if (pretag_jet_counts_.at(cat.first).count(cat.second) > 0) {
+        const std::vector <double> & pretag_jet_count = pretag_jet_counts_.at(cat.first).at(cat.second);
+        for (std::size_t b = 0; b < (ptBins_.size()-1)*(etaBins_.size()-1); b++) {
+          for (std::size_t t = 0; t < type.size(); t++) {
+            good_jets.at(b) += pretag_jet_count.at(b*4 +type.at(t))/nEventGen_;
+          }
+        }
+      }
+    }
+  } 
   return good_jets;
 }
 
-std::vector<double> Component::get_tag_cat_jets() const {
-
-  std::vector<double> tag_cat_jets;
-  for ( const auto & mapping : cat_mapping_ ) {
-    tag_cat_jets.emplace_back(0.0);
-    for (const auto & cat : mapping ) {
-      tag_cat_jets.back()+=tag_cat_jets_.at(i_tag_).at(i_wp_).at(cat);
+std::vector<double> Component::get_tag_jets(
+    const std::vector<int> & type,
+    const std::set<std::pair<std::string,std::string>> & cat_set ) const
+{
+  std::vector<double> tag_jets((ptBins_.size()-1)*(etaBins_.size()-1), 0.0);
+  for (const auto & cat : cat_set) {
+      if ( tag_cat_counts_.count(cat.first) > 0) {
+      const auto & tag_cat_count = tag_cat_counts_.at(cat.first);
+      for ( const auto & tag_cat : tag_cat_count) {
+        std::string s_tag_kin_cat((ptBins_.size()-1)*(etaBins_.size()-1),'0');
+        for (std::size_t b = 0; b < (ptBins_.size()-1)*(etaBins_.size()-1); b++) {
+          int sum = 0;
+          for (std::size_t t=0; t < 4; t++) {
+            sum += int(tag_cat.first.at(4*b+t)-'0');
+          }
+          s_tag_kin_cat.at(b) =  char(sum)+'0';
+        }
+        
+        if (cat.second == s_tag_kin_cat) {
+          for (std::size_t b = 0; b < (ptBins_.size()-1)*(etaBins_.size()-1); b++) {
+            for (std::size_t t = 0; t < type.size(); t++) {
+              tag_jets.at(b) += double(int(tag_cat.first.at(4*b+type.at(t))-'0'))*tag_cat.second[0]/nEventGen_;
+            }
+          }
+        }
+      }
     } 
   }
-  return tag_cat_jets;
-}
 
-std::vector<double> Component::get_tag_b_jets() const {
-  return tag_b_jets_.at(i_tag_).at(i_wp_);
-}
-
-std::vector<double> Component::get_tag_c_jets() const {
-  return tag_c_jets_.at(i_tag_).at(i_wp_);
-}
-
-std::vector<double> Component::get_tag_l_jets() const {
-  std::vector<double> tag_l_jets = tag_l_jets_.at(i_tag_).at(i_wp_) ;
-  for (std::size_t i=0; i < tag_l_jets.size(); i++) {
-    tag_l_jets.at(i) += tag_x_jets_.at(i_tag_).at(i_wp_).at(i);
-  }
-  return tag_l_jets;
-}
-
-std::vector<double> Component::get_tag_x_jets() const {
-  return tag_x_jets_.at(i_tag_).at(i_wp_);
-}
-
-std::vector<double> Component::get_tag_jets() const {
-  std::vector<double> tag_jets = tag_b_jets_.at(i_tag_).at(i_wp_);
-  for (std::size_t i=0; i < tag_jets.size(); i++) {
-    tag_jets.at(i) += tag_c_jets_.at(i_tag_).at(i_wp_).at(i);
-    tag_jets.at(i) += tag_l_jets_.at(i_tag_).at(i_wp_).at(i);
-    tag_jets.at(i) += tag_x_jets_.at(i_tag_).at(i_wp_).at(i);
-  }
   return tag_jets;
 }
 
 
-std::vector<double> Component::get_tag_multiplicity() const {
-  return tagMultiplicity_.at(i_tag_).at(i_wp_);
+double Component::get_tag_counts( const std::string & pretag_cat,
+    const std::string & tag_cat) const {
+  double counts = 0.0;
+  if ( tag_cat_counts_.count(pretag_cat) > 0) {
+  const std::map<std::string,std::vector<double>> & sub_map = tag_cat_counts_.at(pretag_cat);
+  for (const auto & kv : sub_map) {
+    const std::string & extended_cat = kv.first;
+    std::string short_cat((ptBins_.size()-1)*(etaBins_.size()-1),'0');
+    for (std::size_t b = 0; b < (ptBins_.size()-1)*(etaBins_.size()-1); b++) {
+      int jet_sum = 0;
+      for (std::size_t t = 0; t < 4; t++) {
+        jet_sum += int(extended_cat.at(4*b+t)-'0');
+      }
+      short_cat.at(b) = char(jet_sum) + '0';
+    }
+    // check if short cat matches and add to counts
+    if (short_cat == tag_cat) counts  += kv.second.at(0);
+  }
+  }
+  return counts;
 }
-    
-std::vector<double> Component::get_mean_b_jet_mul() const {
-  std::vector<double> mean_b_jet_mul = get_good_b_jets();
-  for (auto & j : mean_b_jet_mul) j=j/nEventPass_[1];
-  return mean_b_jet_mul;
-}  
 
-std::vector<double> Component::get_mean_c_jet_mul() const {
-  std::vector<double> mean_c_jet_mul = get_good_c_jets();
-  for (auto & j : mean_c_jet_mul) j=j/nEventPass_[1];
-  return mean_c_jet_mul;
+double Component::get_pretag_counts( const std::string & pretag_cat) const {
+
+  double counts = 0.0;
+  if ( tag_cat_counts_.count(pretag_cat) > 0) {
+  const std::map<std::string,std::vector<double>> & sub_map = tag_cat_counts_.at(pretag_cat);
+    for (const auto & kv : sub_map) {
+      counts  += kv.second.at(0);
+    }
+  }
+  return counts;
 }
 
-std::vector<double> Component::get_mean_l_jet_mul() const {
-  std::vector<double> mean_l_jet_mul = get_good_l_jets();
-  for (auto & j : mean_l_jet_mul) j=j/nEventPass_[1];
-  return mean_l_jet_mul;
-}
+std::map<std::string, std::vector<double>> Component::get_flav_frac(
+    const std::string & pretag_cat,
+    std::vector<std::vector<int>> cat_mapping ) const {
 
-std::map<std::string, std::vector<double>> Component::get_cat_fractions() const {
-
-  std::map<std::string, std::vector<double>> cat_fractions; 
-
-  for ( const auto & cat : cat_counts_) {
+  std::map<std::string, std::vector<double>> flav_frac; 
+  if ( pretag_cat_counts_.count(pretag_cat) > 0) {
+  const std::map<std::string,std::vector<double>> & sub_map = pretag_cat_counts_.at(pretag_cat);
+  for ( const auto & cat : sub_map) {
     // convert to new category mapping
     std::string key = "";
     std::vector<double> value = {0.0, 0.0};
-    for ( const auto & mapping : cat_mapping_ ) {
-      key.push_back('0');
-      for (const auto & i_cat : mapping ) {
-        key.back()+=(cat.first.at(i_cat)-'0');
+    for (std::size_t b = 0; b < (ptBins_.size()-1)*(etaBins_.size()-1); b++) {
+      for ( const auto & mapping : cat_mapping ) {
+        key.push_back('0');
+        for (const auto & i_cat : mapping ) {
+          key.back()+=(cat.first.at(b*4 + i_cat)-'0');
+        }
       }
     }
     value.at(0) += cat.second.at(0);
     value.at(1) += cat.second.at(1);
     // write to map (divide between total number)
-    if (cat_fractions.count(key) > 0) {
-      cat_fractions.at(key).at(0) += value.at(0);
-      cat_fractions.at(key).at(1) += value.at(1);
+    if (flav_frac.count(key) > 0) {
+      flav_frac.at(key).at(0) += value.at(0);
+      flav_frac.at(key).at(1) += value.at(1);
     } else {
-      cat_fractions[key] = value;
+      flav_frac[key] = value;
     }
+  }
   }
 
   // convert to fractions
-  for ( auto & cat : cat_fractions ) {
+  for ( auto & cat : flav_frac ) {
     cat.second.at(0) /= nEventPass_.at(1) ;
     // error TODO
   }
-
-  return cat_fractions;
-}; 
-
+  return flav_frac;
+} 
 

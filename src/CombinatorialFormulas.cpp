@@ -1,5 +1,5 @@
 
-#include "../interface/FtCM_formula.h"
+#include "../interface/CombinatorialFormulas.h"
 
 namespace FtCM {
 

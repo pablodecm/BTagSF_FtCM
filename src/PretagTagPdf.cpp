@@ -1,13 +1,12 @@
 
 #include "Riostream.h" 
-#include "../interface/KinFtCM_ExtendedPdf.h" 
+#include "../interface/PretagTagPdf.h" 
 #include "mut_framework/mut_utils/interface/prettyprint.hpp"
 
-ClassImp(KinFtCM::ExtendedPdf) 
+ClassImp(PretagTagPdf) 
 
-namespace KinFtCM {
 
- ExtendedPdf::ExtendedPdf(const char *name, const char *title, 
+ PretagTagPdf::PretagTagPdf(const char *name, const char *title, 
                     RooAbsReal& lumi,
                     RooAbsReal& kappa,
                     const RooArgList& pretag_effs,
@@ -38,7 +37,7 @@ namespace KinFtCM {
  } 
 
 
- ExtendedPdf::ExtendedPdf(const ExtendedPdf & other, const char* name) :  
+ PretagTagPdf::PretagTagPdf(const PretagTagPdf & other, const char* name) :  
    RooAbsPdf(other, name), 
    lumi_("lumi", this, other.lumi_),
    kappa_("kappa", this, other.kappa_),
@@ -59,12 +58,12 @@ namespace KinFtCM {
 
 
 
- Double_t ExtendedPdf::evaluate() const 
+ Double_t PretagTagPdf::evaluate() const 
  { 
    return 1.0;
  } 
 
-Double_t ExtendedPdf::expectedEvents(const RooArgSet* nset) const {
+Double_t PretagTagPdf::expectedEvents(const RooArgSet* nset) const {
 
   std::size_t n_cat = b_jet_tag_effs_.getSize();
   std::size_t n_sam = xsecs_.getSize();
@@ -147,7 +146,7 @@ Double_t ExtendedPdf::expectedEvents(const RooArgSet* nset) const {
   return value;
 }
 
-std::vector<double> ExtendedPdf::get_mcs_tag_counts() const {
+std::vector<double> PretagTagPdf::get_mcs_tag_counts() const {
 
   std::size_t n_cat = b_jet_tag_effs_.getSize();
   std::size_t n_sam = xsecs_.getSize();
@@ -235,8 +234,4 @@ std::vector<double> ExtendedPdf::get_mcs_tag_counts() const {
 
   return mcs_tag_counts;
 }
-
-
-}
-
 

@@ -14,14 +14,13 @@
 #include "RooAbsCategory.h"
 #include "TMath.h" 
 
-#include "../interface/FtCM_formula.h"
-#include "../interface/KinFtCM_Component.h"
+#include "../interface/CombinatorialFormulas.h"
+#include "../interface/Component.h"
 
-namespace KinFtCM {
-class ExtendedPdf : public RooAbsPdf {
+class PretagTagPdf : public RooAbsPdf {
 public:
-  ExtendedPdf() {} ; 
-  ExtendedPdf(const char *name, const char *title,
+  PretagTagPdf() {} ; 
+  PretagTagPdf(const char *name, const char *title,
 	         RooAbsReal& lumi,
 	         RooAbsReal& kappa,
 	         const RooArgList& pretag_effs,
@@ -30,9 +29,9 @@ public:
 	         const RooArgList& c_jet_tag_effs,
 	         const RooArgList& l_jet_tag_effs,
            double pretag_ev_data = -1.0);
-  ExtendedPdf(const ExtendedPdf& other, const char* name=0) ;
-  virtual TObject* clone(const char* newname) const { return new ExtendedPdf(*this,newname); }
-  inline virtual ~ExtendedPdf() { }
+  PretagTagPdf(const PretagTagPdf& other, const char* name=0) ;
+  virtual TObject* clone(const char* newname) const { return new PretagTagPdf(*this,newname); }
+  inline virtual ~PretagTagPdf() { }
 
   void set_cat_frac(const std::vector<std::vector<std::string>> & cat,
                     const std::vector<std::vector<double>> & frac) 
@@ -84,8 +83,7 @@ protected:
 
 private:
 
-  ClassDef(ExtendedPdf,1) 
+  ClassDef(PretagTagPdf,1) 
 };
 
-}
  

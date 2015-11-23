@@ -2,13 +2,9 @@
   <class name="JetCounter"/>
   <class name="JetRegistry"/>
   <class name="Component"/>
-  <class name="Model"/>
-  <class name="ModelPdf"/>
   <enum name="Norm"/>
   <class name="std::map<std::string,vector<double>>"/> 
-  <class name="PtBinPdf"/>
-  <class name="KinFtCM::Component"/>
-  <class name="KinFtCM::Builder"/>
-  <class name="KinFtCM::ExtendedPdf"/>
+  <class name="Builder"/>
+  <class name="PretagTagPdf"/>
   <class name="EventSelector"/>
 </lcgdict>  
