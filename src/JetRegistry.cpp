@@ -99,7 +99,6 @@ std::string JetRegistry::registerJet( const mut::Jet & jet,
       // check if tagged
       bool isTagged = jet.getDiscriminator(taggers_[t]) > workPoints_[t][i];
       if (isTagged) {
-//tag_jets_[t][i].Fill( jet.pt(), jet.eta());
         tag_cat_jets_.at(t).at(i).at(glob_index) += eWeight;
         if ( jet_flavour == 5) {
           tag_b_jets_.at(t).at(i).at(cat_index) += eWeight;
