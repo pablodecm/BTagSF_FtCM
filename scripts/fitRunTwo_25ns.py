@@ -26,25 +26,25 @@ data_names = ["SingleMuon_PRD",
               "SingleMuon_RRD"]
 
 
-mc_names = [["TT_powheg",0],
-            ["WJetsToLNu",1],
-            ["DYJetsToLL_M-50", 1],
-            ["ST_t-channel", 1],
-            ["ST_s-channel", 1],
-            ["ST_tW_top",1],
-            ["ST_tW_antitop", 1],
-            ["QCD_Pt-1000toInf_MuEnrichedPt5",1],
-            ["QCD_Pt-120to170_MuEnrichedPt5",1],
-            ["QCD_Pt-170to300_MuEnrichedPt5",1],
-            ["QCD_Pt-300to470_MuEnrichedPt5",1],
-            ["QCD_Pt-470to600_MuEnrichedPt5",1],
-            ["QCD_Pt-50to80_MuEnrichedPt5",1],
-            ["QCD_Pt-600to800_MuEnrichedPt5", 1],
-            ["QCD_Pt-800to1000_MuEnrichedPt5",1],
-            ["QCD_Pt-80to120_MuEnrichedPt5", 1],
-            ["WW", 1],
-            ["WZ", 1],
-            ["ZZ", 1]]
+mc_names = [["TT_powheg","ttbar_norm"],
+            ["WJetsToLNu","bkg_norm"],
+            ["DYJetsToLL_M-50", "bkg_norm"],
+            ["ST_t-channel", "bkg_norm"],
+            ["ST_s-channel", "bkg_norm"],
+            ["ST_tW_top","bkg_norm"],
+            ["ST_tW_antitop", "bkg_norm"],
+            ["QCD_Pt-1000toInf_MuEnrichedPt5","bkg_norm"],
+            ["QCD_Pt-120to170_MuEnrichedPt5","bkg_norm"],
+            ["QCD_Pt-170to300_MuEnrichedPt5","bkg_norm"],
+            ["QCD_Pt-300to470_MuEnrichedPt5","bkg_norm"],
+            ["QCD_Pt-470to600_MuEnrichedPt5","bkg_norm"],
+            ["QCD_Pt-50to80_MuEnrichedPt5","bkg_norm"],
+            ["QCD_Pt-600to800_MuEnrichedPt5", "bkg_norm"],
+            ["QCD_Pt-800to1000_MuEnrichedPt5","bkg_norm"],
+            ["QCD_Pt-80to120_MuEnrichedPt5", "bkg_norm"],
+            ["WW", "bkg_norm"],
+            ["WZ", "bkg_norm"],
+            ["ZZ", "bkg_norm"]]
 
 
 data_comps = []
@@ -55,9 +55,8 @@ for s in data_names:
             
 mc_comps = []
 for s in mc_names:
-    mc_comps.append([json_dir+mc_samples[s[0]]["full_name"]+".json",
-                     mc_samples[s[0]]["gen_events"],
-                     mc_samples[s[0]]["xs"],
+    mc_comps.append([s[0],json_dir+mc_samples[s[0]]["full_name"]+".json",
+                     mc_samples[s[0]]["gen_events"], mc_samples[s[0]]["xs"],
                      s[1]])
 
 result_dir =  args.output_folder
@@ -79,41 +78,14 @@ for data_s in data_comps:
 
 # builder options
 m.zeroNegativeFracs = False
-m.useDataPretagNorm = False 
-
-if (m.useDataPretagNorm):
-    m.kappa_.setConstant(True)
 
 # min data counts per pretag category
 cats = m.add_all_categories(True, 200)
-m.set_mc_jet_tag_effs()
+m.init()
 
 # get and fit data
 data = m.get_data_hist()
-fit_result = m.sim_kin_pdf_.fitTo(data, RooFit.Extended(1), RooFit.NumCPU(8), RooFit.Save(1))
+#fit_result = m.sim_kin_pdf_.fitTo(data, RooFit.Extended(1), RooFit.NumCPU(8), RooFit.Save(1))
+fit_result = m.sim_kin_pdf_.fitTo(data, RooFit.Extended(1), RooFit.Save(1))
 fit_result.SaveAs(result_dir+"fit_result_{}_{}_first.root".format(tagger,wp))
-
-# set mc effs and fit again
-m.b_jet_tag_effs_.Print("v")
-m.c_jet_tag_effs_.Print("v")
-m.l_jet_tag_effs_.Print("v")
-print "Set MC tag effs"
-m.set_mc_jet_tag_effs()
-m.b_jet_tag_effs_.Print("v")
-m.c_jet_tag_effs_.Print("v")
-m.l_jet_tag_effs_.Print("v")
-
- # fit data
-fit_result = m.sim_kin_pdf_.fitTo(data, RooFit.Extended(1), RooFit.NumCPU(8), RooFit.Save(1))
-fit_result.SaveAs(result_dir+"fit_result_{}_{}_second.root".format(tagger,wp))
-
-# set mc effs and fit again
-m.b_jet_tag_effs_.Print("v")
-m.c_jet_tag_effs_.Print("v")
-m.l_jet_tag_effs_.Print("v")
-print "Set MC tag effs"
-m.set_mc_jet_tag_effs()
-m.b_jet_tag_effs_.Print("v")
-m.c_jet_tag_effs_.Print("v")
-m.l_jet_tag_effs_.Print("v")
 
