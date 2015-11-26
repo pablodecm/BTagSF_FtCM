@@ -4,6 +4,7 @@
 #include "mut_framework/BTagSF_FtCM/interface/Component.h"
 #include "mut_framework/BTagSF_FtCM/interface/Builder.h"
 #include "mut_framework/BTagSF_FtCM/interface/PretagTagPdf.h"
+#include "mut_framework/BTagSF_FtCM/interface/SimBTagEff.h"
 #include "mut_framework/BTagSF_FtCM/interface/SingleLeptonSelector.h"
 
 namespace { struct dict_FtCM {
@@ -14,6 +15,7 @@ namespace { struct dict_FtCM {
   Component dummy4;
   Builder dummy5;
   PretagTagPdf dummy6;
+  SimBTagEff dummy7;
 };
 }
 

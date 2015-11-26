@@ -21,13 +21,10 @@ class Component {
 
   public:
 
-    std::string c_name_;
-
     // [unweighted_events, weighthed_events, sumw2]
     std::vector<double> nEventPass_;   
     double nEventGen_;
-    double xSec_;
-    Norm n_;
+    bool isData_ = false;
     
 
     // tagger to use
@@ -48,10 +45,9 @@ class Component {
 
     Component() {}
     Component(std::string filename, std::string tagger,
-              double workPoint, double nEventGen, double xSec, Norm n );
+              double workPoint, double nEventGen = -1);
     ~Component() {}
 
-    std::string get_name() const { return c_name_; }
     std::size_t get_n_cat() const { return ((ptBins_.size()-1)*(etaBins_.size()-1)); }
 
     std::vector<double> get_pretag_eff() const;

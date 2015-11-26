@@ -2,113 +2,176 @@
 #include "../interface/Builder.h"
 #include "mut_framework/mut_utils/interface/prettyprint.hpp"
 
-void Builder::add_mc_component(std::string filename, double nEventGen,
-                             double xSec, Norm n) {
+void Builder::add_mc_component(std::string mc_name, std::string filename,
+                               double nEventGen, double theory_xs,
+                               std::string k_name) {
 
-  mc_comps_.emplace_back(filename, tagger_, workPoint_, nEventGen, xSec, n);
- 
-  // init tag_eff_lists
-  if (mc_comps_.size() == 1) { 
-    for (std::size_t i=0; i< mc_comps_.back().get_n_cat(); i++) {
-      std::string b_tag_eff = "b_tag_eff_"+std::to_string(i);
-      b_jet_tag_effs_.addOwned(*new RooRealVar(b_tag_eff.c_str(),
-                                           b_tag_eff.c_str(), 0.0, 1.0));
-      std::string c_tag_eff = "c_tag_eff_"+std::to_string(i);
-      c_jet_tag_effs_.addOwned(*new RooRealVar(c_tag_eff.c_str(),
-                                           c_tag_eff.c_str(), 0.5, 0.0, 1.0));
-      dynamic_cast<RooRealVar &>(c_jet_tag_effs_[i]).setConstant();
-      std::string l_tag_eff = "l_tag_eff_"+std::to_string(i);
-      l_jet_tag_effs_.addOwned(*new RooRealVar(l_tag_eff.c_str(),
-                                           l_tag_eff.c_str(), 0.5, 0.0, 1.0));
-      dynamic_cast<RooRealVar &>(l_jet_tag_effs_[i]).setConstant();
+  std::size_t mc_index = mc_names_.size();
+  auto mc_iter =  std::find(mc_names_.begin(), mc_names_.end(), mc_name);
+  if ( mc_iter == mc_names_.end() ) {
+    mc_names_.emplace_back(mc_name);
+    mc_comps_.emplace_back(filename, tagger_, workPoint_, nEventGen);
+    th_xsecs_.addOwned(*new RooRealVar(("xs_"+mc_name).c_str(),
+                                       ("xs_"+mc_name).c_str(),
+                                       theory_xs));
+    int k_index = kappas_.index(k_name.c_str());  
+    if (k_index < 0) {  
+       k_index = kappas_.getSize();
+       kappas_.addOwned(*new RooRealVar( k_name.c_str(),
+                                         k_name.c_str(),
+                                         0.5, 1.5));
     }
-  }
+    mc_norms_.addOwned(*new RooProduct( ("n_"+mc_name).c_str(),
+                                        ("n_"+mc_name).c_str(),
+                                         RooArgList(th_xsecs_[mc_index],
+                                         kappas_[k_index], lumi_)));
 
-  // pretag_eff and cross section
-  const Component & c = mc_comps_.back();
-  std::string n_pretag_eff = "pre_tag_eff_"+c.get_name();
-  pretag_effs_.addOwned(*new RooRealVar(n_pretag_eff.c_str(),
-                                        n_pretag_eff.c_str(),
-                                        c.get_pretag_eff()[0]));
-  std::string n_xsec = "xsec_"+c.get_name();
-  if ( n == BKG ) { 
-    xsecs_.addOwned(*new RooRealVar(n_xsec.c_str(), n_xsec.c_str(), xSec));
+
   } else {
-    xsecs_.addOwned(*new RooRealVar(n_xsec.c_str(), n_xsec.c_str(),
-                                    xSec, xSec*0.5, xSec*1.5));   
+    mc_index = std::distance(mc_names_.begin(), mc_iter);
+    std::cout << "WARNING: overwriting nominal " << mc_name << " component" << std::endl;
+    mc_comps_.at(mc_index) = Component(filename, tagger_, workPoint_, nEventGen);
   }
-  // BKG or SIGNAL
-  mc_norms_.emplace_back(n);
 
+}
+
+void Builder::add_mc_systematic(std::string mc_name, std::string syst_name,
+                                std::string filename_m, std::string filename_p,
+                                double nEventGen_m, double nEventGen_p)  {
+  std::size_t mc_index = mc_names_.size();
+  auto mc_iter =  std::find(mc_names_.begin(), mc_names_.end(), mc_name);
+  if ( mc_iter == mc_names_.end() ) {
+    std::cout << "ERROR: " << mc_name << " nominal MC sample not added" << std::endl;
+  } else {
+    mc_index = std::distance(mc_names_.begin(), mc_iter);
+    mc_systs_.at(mc_index).emplace_back();
+    // get systematic index  
+    std::size_t syst_index = syst_names_.size();
+    auto syst_iter = std::find(syst_names_.begin(), syst_names_.end(), syst_name);
+    if ( syst_iter == syst_names_.end() ) {
+       // add systematic if not used yet
+       syst_names_.emplace_back(syst_name);
+       for (auto & mc_syst : mc_systs_) {
+         mc_syst.emplace_back();
+       }
+    } else {
+       // get index if systematic already known
+       syst_index = std::distance(syst_names_.begin(), syst_iter);
+    }
+    auto & syst_comp = mc_systs_.at(mc_index).at(syst_index);
+    syst_comp.emplace_back(filename_m, tagger_, workPoint_, nEventGen_m);
+    syst_comp.emplace_back(filename_p, tagger_, workPoint_, nEventGen_p);
+  }
 }
 
 void Builder::add_data_component(std::string filename) {
-  data_comps_.emplace_back(filename, tagger_,workPoint_, 1.0, 1.0, DATA);
+  data_comps_.emplace_back(filename, tagger_, workPoint_);
 }
+
+
+void Builder::set_mc_jet_tag_effs() {
+
+  // get number of tagged and good each for each sample
+  std::vector<std::vector<std::vector<double>>> tag_jets(n_sam_);
+  std::vector<std::vector<std::vector<double>>> good_jets(n_sam_);
+  for (std::size_t i_sam = 0; i_sam < n_sam_; i_sam++) {
+    const auto & mc_comp = mc_comps_.at(i_sam);
+    for (std::size_t i_jty = 0; i_jty < n_jty_; i_jty++) {
+      const auto & type = cat_mapping_.at(i_jty);
+      tag_jets.at(i_sam).emplace_back(mc_comp.get_tag_jets(type, cat_set_));
+      good_jets.at(i_sam).emplace_back(mc_comp.get_good_jets(type, cat_set_));
+    }
+  }
+
+  // create a SimBTagEff objects
+  for (std::size_t i_jty = 0; i_jty < n_jty_; i_jty++) {
+    for (std::size_t i_cat = 0; i_cat < n_cat_; i_cat++) {
+      // get tagged and good jets for each cat and jty
+      std::vector<double> tag_jet_jc(n_sam_, 0.0);
+      std::vector<double> good_jet_jc(n_sam_, 0.0);
+      for (std::size_t i_sam = 0; i_sam < n_sam_; i_sam++) {
+        tag_jet_jc.at(i_sam) = tag_jets.at(i_sam).at(i_jty).at(i_cat);
+        good_jet_jc.at(i_sam) = good_jets.at(i_sam).at(i_jty).at(i_cat);
+      }
+      std::string var_name = std::string(mc_jet_tag_effs_.at(i_jty).GetName())
+                              + "_" + std::to_string(i_cat);
+
+      mc_jet_tag_effs_.at(i_jty).addOwned(*new SimBTagEff(var_name.c_str(),
+                                                          var_name.c_str(),
+                                                          mc_norms_,
+                                                          tag_jet_jc,
+                                                          good_jet_jc));
+    }
+  }
+}
+
+void Builder::set_jet_tag_sfs(std::vector<bool> floating) {
+  
+  for (std::size_t i_jty = 0; i_jty < n_jty_; i_jty++) {
+    for (std::size_t i_cat = 0; i_cat < n_cat_; i_cat++) {
+       std::string var_name = std::string(jet_tag_sfs_.at(i_jty).GetName())
+                               + "_" + std::to_string(i_cat);
+      if (floating.at(i_jty)) {
+        jet_tag_sfs_.at(i_jty).addOwned(*new RooRealVar(var_name.c_str(),
+                                         var_name.c_str(), 0.0, 2.0));
+      } else {
+        jet_tag_sfs_.at(i_jty).addOwned(*new RooRealVar(var_name.c_str(),
+                                         var_name.c_str(), 1.0));
+      }
+    }
+  }
+}
+
+void Builder::set_jet_tag_effs() {
+  
+  for (std::size_t i_jty = 0; i_jty < n_jty_; i_jty++) {
+    for (std::size_t i_cat = 0; i_cat < n_cat_; i_cat++) {
+       std::string var_name = std::string(jet_tag_effs_.at(i_jty).GetName())
+                               + "_" + std::to_string(i_cat);
+       jet_tag_effs_.at(i_jty).addOwned(*new RooProduct(var_name.c_str(),
+                                           var_name.c_str(), RooArgList(
+                                           mc_jet_tag_effs_.at(i_jty)[i_cat],
+                                           jet_tag_sfs_.at(i_jty)[i_cat])));
+    }
+  }
+}
+
 
 void Builder::add_category( const std::string & pretag_cat, const std::string & tag_cat) { 
   cat_set_.insert(std::make_pair(pretag_cat, tag_cat)); 
-  std::string cat_name = pretag_cat + ":" + tag_cat;
-  kin_cat_.defineType(cat_name.c_str());
-  kin_bin_pdfs_.addOwned(*get_extended_pdf_ptr(pretag_cat, tag_cat)); 
-  sim_kin_pdf_.addPdf(dynamic_cast<RooAbsPdf &>(kin_bin_pdfs_[kin_bin_pdfs_.getSize()-1]),
-      cat_name.c_str());
 }
+
 
 std::vector<std::string> Builder::get_mcs_names() const {
-  std::vector<std::string> mc_names;
-  for (const auto & mc_comp : mc_comps_) {
-    mc_names.emplace_back(mc_comp.get_name());
-  }
-  return mc_names;
+  return mc_names_;
 }
 
-std::vector<double> Builder::get_mc_jet_tag_effs(const std::vector<int> & type) const {
+void Builder::init() {
 
-  std::size_t n_cat = mc_comps_.back().get_n_cat();
-  std::vector<double> tag_jets(n_cat, 0.0);
-  std::vector<double> good_jets(n_cat, 0.0);
-  std::vector<double> jet_tag_effs(n_cat, 0.0);
+  // set values for useful varibles
+  n_cat_ = mc_comps_.at(0).get_n_cat();
+  n_sam_ = mc_names_.size();
+  n_jty_ = cat_mapping_.size(); 
+  n_sys_ = syst_names_.size();
 
-  // sum all good and tagged jets
-  for (std::size_t n_s = 0; n_s < mc_comps_.size(); n_s++) {
-    std::vector<double> c_tag_jets = mc_comps_.at(n_s).get_tag_jets(type, cat_set_);
-    std::vector<double> c_good_jets = mc_comps_.at(n_s).get_good_jets(type, cat_set_);
-    for (std::size_t i_cat = 0; i_cat < n_cat; i_cat++) {
-      double factor = lumi_.getVal()*dynamic_cast<RooAbsReal&>(xsecs_[n_s]).getVal();
-      if (mc_norms_.at(n_s) == SIGNAL ) { 
-        tag_jets.at(i_cat) += factor*c_tag_jets.at(i_cat); 
-        good_jets.at(i_cat) += factor*c_good_jets.at(i_cat); 
-      } else if (mc_norms_.at(n_s) == BKG) {
-        tag_jets.at(i_cat) += kappa_.getVal()*factor*c_tag_jets.at(i_cat); 
-        good_jets.at(i_cat) += kappa_.getVal()*factor*c_good_jets.at(i_cat); 
-      }
-    } 
+  // setup MC b-tagging efficiencies
+  set_mc_jet_tag_effs();
+  set_jet_tag_sfs();  
+  set_jet_tag_effs();
+
+  // create pdfs for all categories
+  for (const auto & cat : cat_set_) {
+    const auto & pretag_cat = cat.first;
+    const auto & tag_cat = cat.second;
+    std::string cat_name = pretag_cat + ":" + tag_cat;
+    kin_cat_.defineType(cat_name.c_str());
+    kin_bin_pdfs_.addOwned(*get_extended_pdf_ptr(pretag_cat, tag_cat)); 
+    sim_kin_pdf_.addPdf(dynamic_cast<RooAbsPdf &>(
+                        kin_bin_pdfs_[kin_bin_pdfs_.getSize()-1]),
+                        cat_name.c_str());
   }
 
-  // compute mc efficiencies
-   for (std::size_t i_cat = 0; i_cat < n_cat; i_cat++) {
-     std::cout << "category " << i_cat << " - " << tag_jets.at(i_cat) << " " << good_jets.at(i_cat) << std::endl;
-     jet_tag_effs.at(i_cat) = tag_jets.at(i_cat) / good_jets.at(i_cat);
-   }
-
-  return jet_tag_effs;
-
-}
-
-void Builder::set_mc_jet_tag_effs() {
-  std::vector<double> b_jet_tag_effs = get_mc_jet_tag_effs({0});
-  for ( std::size_t i_c = 0; i_c < b_jet_tag_effs.size(); i_c++) {
-    dynamic_cast<RooRealVar &>(b_jet_tag_effs_[i_c]).setVal(b_jet_tag_effs.at(i_c));
-  }
-  std::vector<double> c_jet_tag_effs = get_mc_jet_tag_effs({1});
-  for ( std::size_t i_c = 0; i_c < c_jet_tag_effs.size(); i_c++) {
-    dynamic_cast<RooRealVar &>(c_jet_tag_effs_[i_c]).setVal(c_jet_tag_effs.at(i_c));
-  }
-  std::vector<double> l_jet_tag_effs = get_mc_jet_tag_effs({2,3});
-  for ( std::size_t i_c = 0; i_c < l_jet_tag_effs.size(); i_c++) {
-    dynamic_cast<RooRealVar &>(l_jet_tag_effs_[i_c]).setVal(l_jet_tag_effs.at(i_c));
-  }
+    
 }
 
 std::vector<std::string> Builder::add_all_categories( bool all_tag_cats, double min_counts_pretag,
@@ -236,19 +299,9 @@ PretagTagPdf * Builder::get_extended_pdf_ptr(const std::string & pretag_cat,
                                             const std::string & tag_cat)
 {
   std::string name = "PretagTagPdf-"+pretag_cat+":"+tag_cat;
-  double pretag_ev_data = - 1.0;
-  if (useDataPretagNorm ) {
-    pretag_ev_data = get_data_pretag_counts(pretag_cat); 
-  }
   PretagTagPdf * ext_pdf =  new PretagTagPdf(name.c_str(), name.c_str(),
-                                           lumi_, kappa_,
-                                           pretag_effs_,
-                                           xsecs_,
-                                           b_jet_tag_effs_,   
-                                           c_jet_tag_effs_,   
-                                           l_jet_tag_effs_,
-                                           pretag_ev_data);   
-  ext_pdf->set_norms(mc_norms_);
+                                             mc_norms_,
+                                             jet_tag_effs_);   
   ext_pdf->set_category(pretag_cat, tag_cat);
   
   std::set<std::string> unique_cats;
@@ -281,7 +334,6 @@ PretagTagPdf * Builder::get_extended_pdf_ptr(const std::string & pretag_cat,
     }
   }
   
-  ext_pdf->set_norms(mc_norms_);
   ext_pdf->set_category(pretag_cat, tag_cat);
   ext_pdf->set_cat_frac(cat, frac);
 

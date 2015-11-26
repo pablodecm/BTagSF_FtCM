@@ -2,21 +2,13 @@
 #include "../interface/Component.h"
 
 Component::Component(std::string filename, std::string tagger,
-                              double workPoint, double nEventGen,
-                              double xSec, Norm n) :
-                              nEventGen_(nEventGen),
-                              xSec_(xSec),
-                              n_(n),
-                              tagger_(tagger),
-                              workPoint_(workPoint)
+                     double workPoint, double nEventGen) :
+                     nEventGen_(nEventGen),
+                     tagger_(tagger),
+                     workPoint_(workPoint)
 {
-  std::size_t bar_i = filename.find_last_of('/');
-  std::size_t ext_i = filename.find_last_of('.');
-  if ( bar_i == std::string::npos) {
-    c_name_ = filename.substr(0,ext_i);
-  } else {
-    c_name_ = filename.substr(bar_i+1,ext_i-bar_i-1);
-  }
+
+  if (nEventGen < 0) isData_ = true;
 
   // load json file
   json j;
@@ -38,7 +30,6 @@ Component::Component(std::string filename, std::string tagger,
  
    // Because get directly does not work
    std::string one_tag_name = tagger_+":"+std::to_string(workPoint_);
-   std::cout << "Reading tag_cat_counts-"+one_tag_name << std::endl;
    for (auto it = j["tag_cat_counts-"+one_tag_name].begin();
         it != j["tag_cat_counts-"+one_tag_name].end(); ++it) {
      tag_cat_counts_[it.key()] = std::map<std::string,std::vector<double>>();
@@ -46,7 +37,6 @@ Component::Component(std::string filename, std::string tagger,
        tag_cat_counts_[it.key()][itt.key()] = itt.value().get<std::vector<double>>();
      }
    }
-   std::cout << "Reading pretag_cat_counts-"+one_tag_name << std::endl;
    for (auto it = j["pretag_jet_counts-"+one_tag_name].begin(); 
         it != j["pretag_jet_counts-"+one_tag_name].end(); ++it) {
      pretag_jet_counts_[it.key()] = std::map<std::string,std::vector<double>>();
@@ -186,9 +176,9 @@ std::map<std::string, std::vector<double>> Component::get_flav_frac(
   }
   }
 
-  // convert to fractions
+  // convert to efficiencies 
   for ( auto & cat : flav_frac ) {
-    cat.second.at(0) /= nEventPass_.at(1) ;
+    cat.second.at(0) /= nEventGen_ ;
     // error TODO
   }
   return flav_frac;
