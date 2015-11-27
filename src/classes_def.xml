@@ -8,4 +8,7 @@
   <class name="PretagTagPdf"/>
   <class name="SimBTagEff"/>
   <class name="SingleLeptonSelector"/>
+  <class name="BTagCalibration"/>
+  <class name="BTagCalibrationReader"/>
+  <class name="BTagEntry"/>
 </lcgdict>  

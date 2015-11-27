@@ -6,6 +6,7 @@
 #include "mut_framework/BTagSF_FtCM/interface/PretagTagPdf.h"
 #include "mut_framework/BTagSF_FtCM/interface/SimBTagEff.h"
 #include "mut_framework/BTagSF_FtCM/interface/SingleLeptonSelector.h"
+#include "mut_framework/BTagSF_FtCM/interface/BTagCalibrationStandalone.h"
 
 namespace { struct dict_FtCM {
   JetCounter dummy0;
@@ -16,6 +17,9 @@ namespace { struct dict_FtCM {
   Builder dummy5;
   PretagTagPdf dummy6;
   SimBTagEff dummy7;
+  BTagCalibration dummy8;
+  BTagCalibrationReader dummy9;
+  BTagEntry dummy10;
 };
 }
 

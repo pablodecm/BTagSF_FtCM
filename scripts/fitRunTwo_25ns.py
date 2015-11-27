@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 
 from mut_framework.LJMET_converter.samples_25ns import data_samples,mc_samples
+from mut_framework.BTagSF_FtCM.ScaleFactorReader import ScaleFactorReader 
 import argparse
-from ROOT import Builder, RooArgSet 
+from ROOT import Builder, RooArgSet, RooGaussian 
 from ROOT import vector, RooRealVar, RooLognormal, RooProdPdf
 from ROOT import RooFit, RooAddition, RooMinuit, RooArgList
+from ROOT import SetOwnership
 import os
 
 default_input_dir = "../output/13TeV_25ns/" 
@@ -47,6 +49,8 @@ mc_names = [["TT_powheg","ttbar_norm"],
             ["ZZ", "bkg_norm"]]
 
 
+
+
 data_comps = []
 lumi = 0.0
 for s in data_names:
@@ -63,10 +67,15 @@ result_dir =  args.output_folder
 tagger = args.tagger
 wp = args.workpoint
 
+if tagger == "pfCombinedInclusiveSecondaryVertexV2BJetTags": 
+    s_tag = "CSVv2"
+    op = {0.604 : 0, 0.890: 1, 0.970 : 2}[wp]
+
 
 print "--- Fitting Run II 25ns Data ---"
 print "  - tagger : {}".format(tagger)
 print "  - workpoint : {}".format(wp)
+print "    {} - OP {}".format(s_tag, op)
 print "--------------------------"
 
 
@@ -83,9 +92,68 @@ m.zeroNegativeFracs = False
 cats = m.add_all_categories(True, 200)
 m.init()
 
+n_cat = m.get_n_cat()
+bin_centers = [[0.0, 200]]
+csv_file = "../data/ext_SF/RunIISpring15MiniAODv2/CSVv2.csv"
+jet_tag_sfs_constraints = [["free", [1.0]*n_cat ], # b jet sf is floating free
+                           ["around", m.jet_tag_sfs_[0], [0.1]*n_cat],
+                           ["meas", "comb", bin_centers]]    
+                          # ["fixed", [1.0]*n_cat]]    
+
+for t, const in enumerate(jet_tag_sfs_constraints):
+    if const[0] == "free":
+        for cat in range(n_cat):
+            m.jet_tag_sfs_[t][cat].setVal(const[1][cat])
+            m.jet_tag_sfs_[t][cat].setConstant(False)
+    elif const[0] == "fixed":        
+            m.jet_tag_sfs_[t][cat].setVal(const[1][cat])
+            m.jet_tag_sfs_[t][cat].setConstant(True)
+    elif const[0] == "around":        
+        for cat in range(n_cat):
+            x_a_r = m.jet_tag_sfs_[t][cat]
+            mean_a_r = const[1][cat] 
+            sigma_a = RooRealVar(x_a_r.GetName()+"_sigma",
+                                 x_a_r.GetName()+"_sigma",
+                                 const[2][cat])
+            m.aux_list_.addOwned(sigma_a)
+            sigma_a_i = m.aux_list_.getSize()-1
+            SetOwnership(sigma_a, False)
+            sigma_a_r = m.aux_list_[sigma_a_i]                              
+            c_name = x_a_r.GetName()+"_around_"+mean_a_r.GetName()
+            gauss_a = RooGaussian(c_name, c_name, x_a_r, mean_a_r, sigma_a_r)
+            m.c_list_.addOwned(gauss_a)
+            SetOwnership(gauss_a, False)
+    elif const[0] == "meas":      
+        for cat in range(n_cat):
+            x_m_r = m.jet_tag_sfs_[t][cat]
+            r = ScaleFactorReader(s_tag,csv_file, op, const[1]) 
+            eta = bin_centers[cat][0]
+            pt = bin_centers[cat][1]
+            mean_m = RooRealVar(x_m_r.GetName()+"_mean",
+                                x_m_r.GetName()+"_mean",
+                                r.get_sf("central",t, eta, pt))
+            m.aux_list_.addOwned(mean_m)
+            mean_m_i = m.aux_list_.getSize()-1
+            SetOwnership(mean_m, False)
+            sigma_m = RooRealVar(x_m_r.GetName()+"_sigma",
+                                 x_m_r.GetName()+"_sigma",
+                                 r.get_sf("up",t, eta, pt)/2. -
+                                 r.get_sf("down",t,eta,pt)/2.)
+            m.aux_list_.addOwned(sigma_m)
+            sigma_m_i = m.aux_list_.getSize()-1
+            SetOwnership(sigma_m, False)
+            mean_m_r = m.aux_list_[mean_m_i]
+            sigma_m_r = m.aux_list_[sigma_m_i]
+            c_name = x_m_r.GetName()+"_measured"
+            gauss_m = RooGaussian(c_name, c_name, x_m_r,
+                                  mean_m_r, sigma_m_r)
+            m.c_list_.addOwned(gauss_m)
+            SetOwnership(gauss_m, False)
+
+m.set_constrained_pdf()
 # get and fit data
 data = m.get_data_hist()
-#fit_result = m.sim_kin_pdf_.fitTo(data, RooFit.Extended(1), RooFit.NumCPU(8), RooFit.Save(1))
-fit_result = m.sim_kin_pdf_.fitTo(data, RooFit.Extended(1), RooFit.Save(1))
-fit_result.SaveAs(result_dir+"fit_result_{}_{}_first.root".format(tagger,wp))
+fit_result = m.fit_pdf_.fitTo(data, RooFit.Extended(1),RooFit.Constrained(),
+                                    RooFit.NumCPU(8), RooFit.Save(1), RooFit.Minos(True))
+
 

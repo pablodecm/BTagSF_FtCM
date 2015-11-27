@@ -170,8 +170,12 @@ void Builder::init() {
                         kin_bin_pdfs_[kin_bin_pdfs_.getSize()-1]),
                         cat_name.c_str());
   }
+}
 
-    
+void Builder::set_constrained_pdf() {
+  list_pdfs_.add(sim_kin_pdf_);
+  list_pdfs_.add(c_list_);
+  fit_pdf_ = new RooProdPdf("fit_pdf","fit_pdf",list_pdfs_);
 }
 
 std::vector<std::string> Builder::add_all_categories( bool all_tag_cats, double min_counts_pretag,

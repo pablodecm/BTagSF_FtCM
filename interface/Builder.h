@@ -15,6 +15,7 @@
 #include <RooExtendPdf.h>
 #include <RooSimultaneous.h>
 #include <RooDataHist.h>
+#include <RooProdPdf.h>
 
 #include "Component.h"
 #include "PretagTagPdf.h"
@@ -65,10 +66,20 @@ class Builder {
   std::vector<RooArgList> jet_tag_effs_;
 
   // shape syst nuissance parameters
-  RooArgList shape_nuis_pars_;
+  RooArgList shape_nuis_;
+  // list with auxiliary varibales
+  RooArgList aux_list_;
 
+  // pretag-tag pdfs
   RooArgList kin_bin_pdfs_;
   RooSimultaneous sim_kin_pdf_;
+  // list for constraint pdfs
+  RooArgList c_list_;
+  // list for keeping sim pdf + constraints
+  RooArgList list_pdfs_;
+  // RooProdPdf for fit with constraints
+  RooProdPdf * fit_pdf_ = nullptr;
+   
 
   // number of categories, samples and jet types
   std::size_t n_cat_ = 0;
@@ -94,8 +105,12 @@ class Builder {
      kappas_("kappas"),
      xsecs_("xsecs"),
      mc_norms_("mc_norms"),
+     shape_nuis_("shape_nuis"),
+     aux_list_("aux_list"),
      kin_bin_pdfs_("ext_kin_pdfs"),
-     sim_kin_pdf_("sim_kin_pdf","sim_kin_pdf",kin_cat_)  {
+     sim_kin_pdf_("sim_kin_pdf","sim_kin_pdf",kin_cat_), 
+     c_list_("c_list"),
+     list_pdfs_("list_pdfs") {
 
     // construct RooArgList 
     for (const auto & jet_type : jet_types_) {
@@ -123,7 +138,7 @@ class Builder {
   void add_data_component(std::string filename); 
 
   void set_mc_jet_tag_effs();
-  void set_jet_tag_sfs(std::vector<bool> floating = {true, false, false});
+  void set_jet_tag_sfs(std::vector<bool> floating = {true, true, true});
   void set_jet_tag_effs();
 
   void add_category( const std::string & pretag_cat, const std::string & tag_cat);
@@ -132,6 +147,7 @@ class Builder {
     
   std::vector<double> get_mc_jet_tag_effs( const std::vector<int> & type) const;
   void init();
+  void set_constrained_pdf();
   std::vector<std::string> add_all_categories(bool all_tag_cats = true, double min_counts_pretag = -1.0,
                                               double min_counts_tag = -1.0 );
   void add_pretag_category(const std::string & pretag_cat);
@@ -148,6 +164,7 @@ class Builder {
   std::size_t get_n_cat() const {return n_cat_; }
   std::size_t get_n_sam() const {return n_sam_; }
   std::size_t get_n_jty() const {return n_jty_; }
+  std::size_t get_n_sys() const {return n_sys_; }
 
   RooDataHist get_data_hist();
   
